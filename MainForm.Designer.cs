@@ -38,6 +38,7 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ftreeLeft = new NBagOfUis.FilTree();
             this.txtViewer = new NBagOfUis.TextViewer();
+            this.lblTODO = new System.Windows.Forms.Label();
             this.toolStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -125,6 +126,7 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.lblTODO);
             this.splitContainer1.Panel2.Controls.Add(this.txtViewer);
             this.splitContainer1.Size = new System.Drawing.Size(1395, 827);
             this.splitContainer1.SplitterDistance = 677;
@@ -151,6 +153,15 @@
             this.txtViewer.TabIndex = 58;
             this.txtViewer.Text = "";
             // 
+            // lblTODO
+            // 
+            this.lblTODO.AutoSize = true;
+            this.lblTODO.Location = new System.Drawing.Point(51, 38);
+            this.lblTODO.Name = "lblTODO";
+            this.lblTODO.Size = new System.Drawing.Size(50, 20);
+            this.lblTODO.TabIndex = 59;
+            this.lblTODO.Text = "label1";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
@@ -169,6 +180,7 @@
             this.toolStrip1.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
+            this.splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.ResumeLayout(false);
@@ -187,6 +199,7 @@
         private NBagOfUis.TextViewer txtViewer;
         private System.Windows.Forms.ToolStripButton btnLoop;
         private System.Windows.Forms.ToolStripButton btnDebug;
+        private System.Windows.Forms.Label lblTODO;
     }
 }
 
