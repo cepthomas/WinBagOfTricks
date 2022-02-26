@@ -28,12 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.fileDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
             this.btnSettings = new System.Windows.Forms.ToolStripButton();
             this.btnAbout = new System.Windows.Forms.ToolStripButton();
-            this.btnAutoplay = new System.Windows.Forms.ToolStripButton();
             this.btnLoop = new System.Windows.Forms.ToolStripButton();
+            this.btnDebug = new System.Windows.Forms.ToolStripButton();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.ftreeLeft = new NBagOfUis.FilTree();
             this.txtViewer = new NBagOfUis.TextViewer();
@@ -51,8 +52,8 @@
             this.fileDropDownButton,
             this.btnSettings,
             this.btnAbout,
-            this.btnAutoplay,
-            this.btnLoop});
+            this.btnLoop,
+            this.btnDebug});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1395, 27);
@@ -92,14 +93,6 @@
             this.btnAbout.ToolTipText = "Get some info";
             this.btnAbout.Click += new System.EventHandler(this.About_Click);
             // 
-            // btnAutoplay
-            // 
-            this.btnAutoplay.CheckOnClick = true;
-            this.btnAutoplay.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnAutoplay.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnAutoplay.Name = "btnAutoplay";
-            this.btnAutoplay.Size = new System.Drawing.Size(29, 24);
-            // 
             // btnLoop
             // 
             this.btnLoop.CheckOnClick = true;
@@ -109,9 +102,18 @@
             this.btnLoop.Name = "btnLoop";
             this.btnLoop.Size = new System.Drawing.Size(29, 24);
             // 
+            // btnDebug
+            // 
+            this.btnDebug.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.btnDebug.Image = ((System.Drawing.Image)(resources.GetObject("btnDebug.Image")));
+            this.btnDebug.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnDebug.Name = "btnDebug";
+            this.btnDebug.Size = new System.Drawing.Size(56, 24);
+            this.btnDebug.Text = "debug";
+            this.btnDebug.Click += new System.EventHandler(this.Debug_Click);
+            // 
             // splitContainer1
             // 
-            this.splitContainer1.Cursor = System.Windows.Forms.Cursors.VSplit;
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.Location = new System.Drawing.Point(0, 27);
             this.splitContainer1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -140,15 +142,12 @@
             // 
             // txtViewer
             // 
-            this.txtViewer.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtViewer.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtViewer.Location = new System.Drawing.Point(99, 374);
+            this.txtViewer.Location = new System.Drawing.Point(35, 158);
             this.txtViewer.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtViewer.MaxText = 5000;
             this.txtViewer.Name = "txtViewer";
-            this.txtViewer.Size = new System.Drawing.Size(521, 162);
+            this.txtViewer.Size = new System.Drawing.Size(521, 316);
             this.txtViewer.TabIndex = 58;
             this.txtViewer.Text = "";
             // 
@@ -159,11 +158,13 @@
             this.ClientSize = new System.Drawing.Size(1395, 854);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.toolStrip1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "MainForm";
             this.Text = "Clip Explorer";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
+            this.Shown += new System.EventHandler(this.MainForm_Shown);
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
@@ -184,8 +185,8 @@
         private System.Windows.Forms.ToolStripButton btnSettings;
         private System.Windows.Forms.ToolStripButton btnAbout;
         private NBagOfUis.TextViewer txtViewer;
-        private System.Windows.Forms.ToolStripButton btnAutoplay;
         private System.Windows.Forms.ToolStripButton btnLoop;
+        private System.Windows.Forms.ToolStripButton btnDebug;
     }
 }
 

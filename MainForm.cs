@@ -16,6 +16,9 @@ using NBagOfTricks;
 using NBagOfUis;
 
 
+// TODO see file-manager.docx.
+
+
 namespace NOrfima
 {
     public partial class MainForm : Form
@@ -26,6 +29,9 @@ namespace NOrfima
 
         /// <summary>Current file.</summary>
         string _fn = "";
+
+        /// <summary>Current global user settings.</summary>
+        UserSettings _settings = new UserSettings();
         #endregion
 
         #region Lifecycle
@@ -46,39 +52,43 @@ namespace NOrfima
             string appDir = MiscUtils.GetAppDataDir("NOrfima", "Ephemera");
             DirectoryInfo di = new(appDir);
             di.Create();
-            UserSettings.Load(appDir);
+            _settings = UserSettings.Load(appDir);
 
-            toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = Common.Settings.ControlColor };
+            toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = _settings.ControlColor };
 
             // Toolbar configs.
-            btnAutoplay.Checked = true;
             btnLoop.Checked = false;
 
             // The text output.
             txtViewer.WordWrap = true;
             txtViewer.BackColor = Color.Cornsilk;
             txtViewer.Colors.Add("ERR", Color.LightPink);
-            //txtViewer.Colors.Add("WRN:", Color.Plum);
+            txtViewer.Colors.Add("WRN", Color.Plum);
             txtViewer.Font = new("Lucida Console", 9);
 
-            //splitContainer1.Panel2.Controls.Add(_wavePlayer);
-            //splitContainer1.Panel2.Controls.Add(_midiPlayer);
+            // Check for "config_taskbar" then do something...
+            LogMessage("INF", $"args: {string.Join(" ", Environment.GetCommandLineArgs())}");
 
             // Init UI from settings
-            Location = new Point(Common.Settings.FormGeometry.X, Common.Settings.FormGeometry.Y);
-            Size = new Size(Common.Settings.FormGeometry.Width, Common.Settings.FormGeometry.Height);
+            Location = new Point(_settings.FormGeometry.X, _settings.FormGeometry.Y);
+            Size = new Size(_settings.FormGeometry.Width, _settings.FormGeometry.Height);
             WindowState = FormWindowState.Normal;
-            KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
-            //sldVolume.Value = Common.Settings.Volume;
-            //sldVolume.DrawColor = Common.Settings.ControlColor;
+            //KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
 
             InitNavigator();
 
-            // Hook up UI handlers.
-            //chkPlay.CheckedChanged += (_, __) => { _ = chkPlay.Checked ? PlayX() : StopX(); };
-            //btnRewind.Click += (_, __) => { Rewind(); };
-
             Text = $"NOrfima {MiscUtils.GetVersionString()} - No file loaded";
+
+            Clipboard.SetText(Text); // TODO multi?
+        }
+
+        /// <summary>
+        /// Jumplist population is after a valid window.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MainForm_Shown(object? sender, EventArgs e)
+        {
         }
 
         /// <summary>
@@ -87,9 +97,6 @@ namespace NOrfima
         void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
         {
             SaveSettings();
-
-            //_wavePlayer?.Dispose();
-            //_midiPlayer?.Dispose();
         }
         #endregion
 
@@ -99,12 +106,12 @@ namespace NOrfima
         /// </summary>
         void SaveSettings()
         {
-            //Common.Settings.Autoplay = btnAutoplay.Checked;
-            //Common.Settings.Loop = btnLoop.Checked;
-            //Common.Settings.Volume = sldVolume.Value;
-            Common.Settings.FormGeometry = new Rectangle(Location.X, Location.Y, Size.Width, Size.Height);
+            //_settings.Autoplay = btnAutoplay.Checked;
+            //_settings.Loop = btnLoop.Checked;
+            //_settings.Volume = sldVolume.Value;
+            _settings.FormGeometry = new Rectangle(Location.X, Location.Y, Size.Width, Size.Height);
 
-            Common.Settings.Save();
+            _settings.Save();
         }
 
         /// <summary>
@@ -127,7 +134,7 @@ namespace NOrfima
             {
                 Dock = DockStyle.Fill,
                 PropertySort = PropertySort.Categorized,
-                SelectedObject = Common.Settings
+                SelectedObject = _settings
             };
 
             // Detect changes of interest.
@@ -176,7 +183,7 @@ namespace NOrfima
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="ea"></param>
-        void LogMessage(object? sender, string cat, string msg)
+        void LogMessage(string cat, string msg)
         {
             int catSize = 3;
             cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
@@ -184,7 +191,7 @@ namespace NOrfima
             // May come from a different thread.
             this.InvokeIfRequired(_ =>
             {
-                string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} ({((Control)sender!).Name}) {msg}";
+                string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} {msg}";
                 txtViewer.AddLine(s);
             });
         }
@@ -206,7 +213,7 @@ namespace NOrfima
             //fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export...", null, Export_Click));
             fileDropDownButton.DropDownItems.Add(new ToolStripSeparator());
 
-            Common.Settings.RecentFiles.ForEach(f =>
+            _settings.RecentFiles.ForEach(f =>
             {
                 ToolStripMenuItem menuItem = new(f, null, new EventHandler(Recent_Click));
                 fileDropDownButton.DropDownItems.Add(menuItem);
@@ -262,7 +269,7 @@ namespace NOrfima
 
             //chkPlay.Checked = false; // ==> stop
 
-            LogMessage(this, "INF", $"Opening file: {fn}");
+            LogMessage("INF", $"Opening file: {fn}");
 
             using (new WaitCursor())
             {
@@ -288,7 +295,7 @@ namespace NOrfima
                                 break;
 
                             default:
-                                LogMessage(this, "ERR", $"Invalid file type: {fn}");
+                                LogMessage("ERR", $"Invalid file type: {fn}");
                                 ok = false;
                                 break;
                         }
@@ -296,7 +303,7 @@ namespace NOrfima
                         if (ok)
                         {
                             //ok = _player!.OpenFile(fn);
-                            //if (Common.Settings.Autoplay)
+                            //if (_settings.Autoplay)
                             //{
                             //    chkPlay.Checked = true; // ==> run
                             //}
@@ -304,13 +311,13 @@ namespace NOrfima
                     }
                     else
                     {
-                        LogMessage(this, "ERR", $"Invalid file: {fn}");
+                        LogMessage("ERR", $"Invalid file: {fn}");
                         ok = false;
                     }
                 }
                 catch (Exception ex)
                 {
-                    LogMessage(this, "ERR", $"Couldn't open the file: {fn} because: {ex.Message}");
+                    LogMessage("ERR", $"Couldn't open the file: {fn} because: {ex.Message}");
                     ok = false;
                 }
             }
@@ -318,7 +325,7 @@ namespace NOrfima
             if (ok)
             {
                 Text = $"NOrfima {MiscUtils.GetVersionString()} - {fn}";
-                Common.Settings.RecentFiles.UpdateMru(fn);
+                _settings.RecentFiles.UpdateMru(fn);
             }
             else
             {
@@ -336,8 +343,14 @@ namespace NOrfima
         void InitNavigator()
         {
             ftreeLeft.FilterExts = _fileTypes.ToList();
-            ftreeLeft.RootDirs = Common.Settings.RootDirs;
-            ftreeLeft.SingleClickSelect = true;//TODO?
+
+            if (_settings.RootDirs.Count == 0)
+            {
+                _settings.RootDirs.Add(@"C:\Dev");
+            }
+
+            ftreeLeft.RootDirs = _settings.RootDirs;
+            ftreeLeft.SingleClickSelect = true;// or?
 
             ftreeLeft.Init();
         }
@@ -354,6 +367,10 @@ namespace NOrfima
         }
         #endregion
 
+        private void Debug_Click(object sender, EventArgs e)
+        {
+            new TaskBar().Show();
+        }
     }
 
 
@@ -410,89 +427,33 @@ namespace NOrfima
         }
 
         /// <summary>Create object from file.</summary>
-        public static void Load(string appDir)
+        public static UserSettings Load(string appDir)
         {
+            UserSettings us;
+
             string fn = Path.Combine(appDir, "settings.json");
 
             if (File.Exists(fn))
             {
                 string json = File.ReadAllText(fn);
                 UserSettings? set = JsonSerializer.Deserialize<UserSettings>(json);
-                Common.Settings = set ?? new();
-                Common.Settings._fn = fn;
+                us = set ?? new();
+                us._fn = fn;
 
                 // Clean up any bad file names.
-                Common.Settings.RecentFiles.RemoveAll(f => !File.Exists(f));
+                us.RecentFiles.RemoveAll(f => !File.Exists(f));
             }
             else
             {
                 // Doesn't exist, create a new one.
-                Common.Settings = new UserSettings
+                us = new UserSettings
                 {
                     _fn = fn
                 };
             }
+
+            return us;
         }
         #endregion
     }
-
-    /// <summary>Converter for selecting property value from known lists.</summary>
-    public class FixedListTypeConverter : TypeConverter
-    {
-        public override bool GetStandardValuesSupported(ITypeDescriptorContext context) { return true; }
-
-        public override bool GetStandardValuesExclusive(ITypeDescriptorContext context) { return true; }
-
-        // Get the specific list based on the property name.
-        public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
-        {
-            List<string>? rec = null;
-
-            switch (context.PropertyDescriptor.Name)
-            {
-                //case "Latency":
-                //    rec = new List<string>() { "25", "50", "100", "150", "200", "300", "400", "500" };
-                //    break;
-
-                //case "WavOutDevice":
-                //    rec = new List<string>();
-                //    for (int id = -1; id < WaveOut.DeviceCount; id++) // –1 indicates the default output device, while 0 is the first output device
-                //    {
-                //        var cap = WaveOut.GetCapabilities(id);
-                //        rec.Add(cap.ProductName);
-                //    }
-                //    break;
-
-                //case "MidiOutDevice":
-                //    rec = new List<string>();
-                //    for (int devindex = 0; devindex < MidiOut.NumberOfDevices; devindex++)
-                //    {
-                //        rec.Add(MidiOut.DeviceInfo(devindex).ProductName);
-                //    }
-                //    break;
-            }
-
-            return new StandardValuesCollection(rec);
-        }
-    }
-
-
-    public class Common
-    {
-        /// <summary>Current global user settings.</summary>
-        public static UserSettings Settings { get; set; } = new UserSettings();
-    }
-
-    /// <summary>Player has something to say or show.</summary>
-    public class LogEventArgs : EventArgs
-    {
-        public string Category { get; private set; } = "";
-        public string Message { get; private set; } = "";
-        public LogEventArgs(string cat, string msg)
-        {
-            Category = cat;
-            Message = msg;
-        }
-    }
-    
 }
