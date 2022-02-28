@@ -16,22 +16,13 @@ using NBagOfTricks;
 using NBagOfUis;
 
 
-// TODO see file-manager.docx.
-
-
 namespace NOrfima
 {
     public partial class MainForm : Form
     {
         #region Fields
-        /// <summary>Supported file types..</summary>
-        readonly string[] _fileTypes = new[] { ".mid", ".wav", ".mp3", ".m4a", ".flac" };
-
-        /// <summary>Current file.</summary>
-        string _fn = "";
-
         /// <summary>Current global user settings.</summary>
-        UserSettings _settings = new UserSettings();
+        UserSettings _settings = new();
         #endregion
 
         #region Lifecycle
@@ -79,7 +70,7 @@ namespace NOrfima
 
             Text = $"NOrfima {MiscUtils.GetVersionString()} - No file loaded";
 
-            Clipboard.SetText(Text); // TODO multi?
+            new ClipboardMonitor().Show();
         }
 
         /// <summary>
@@ -89,6 +80,8 @@ namespace NOrfima
         /// <param name="e"></param>
         private void MainForm_Shown(object? sender, EventArgs e)
         {
+            // Jumplist population is after a valid window shown.
+            new TaskBar().Show();
         }
 
         /// <summary>
@@ -197,152 +190,13 @@ namespace NOrfima
         }
         #endregion
 
-        #region File handling
-        /// <summary>
-        /// Organize the file drop down.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void File_DropDownOpening(object? sender, EventArgs e)
-        {
-            fileDropDownButton.DropDownItems.Clear();
-
-            // Always:
-            fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Open...", null, Open_Click));
-            //fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Dump...", null, Dump_Click));
-            //fileDropDownButton.DropDownItems.Add(new ToolStripMenuItem("Export...", null, Export_Click));
-            fileDropDownButton.DropDownItems.Add(new ToolStripSeparator());
-
-            _settings.RecentFiles.ForEach(f =>
-            {
-                ToolStripMenuItem menuItem = new(f, null, new EventHandler(Recent_Click));
-                fileDropDownButton.DropDownItems.Add(menuItem);
-            });
-        }
-
-        /// <summary>
-        /// The user has asked to open a recent file.
-        /// </summary>
-        void Recent_Click(object? sender, EventArgs e)
-        {
-            //ToolStripMenuItem item = sender as ToolStripMenuItem;
-            string fn = sender!.ToString()!;
-            if (fn != _fn)
-            {
-                OpenFile(fn);
-                _fn = fn;
-            }
-        }
-
-        /// <summary>
-        /// Allows the user to select an audio clip or midi from file system.
-        /// </summary>
-        void Open_Click(object? sender, EventArgs e)
-        {
-            string sext = "Clip Files | ";
-            foreach (string ext in _fileTypes)
-            {
-                sext += $"*{ext}; ";
-            }
-
-            using OpenFileDialog openDlg = new()
-            {
-                Filter = sext,
-                Title = "Select a file"
-            };
-
-            if (openDlg.ShowDialog() == DialogResult.OK && openDlg.FileName != _fn)
-            {
-                OpenFile(openDlg.FileName);
-                _fn = openDlg.FileName;
-            }
-        }
-
-        /// <summary>
-        /// Common file opener.
-        /// </summary>
-        /// <param name="fn">The file to open.</param>
-        /// <returns>Status.</returns>
-        public bool OpenFile(string fn)
-        {
-            bool ok = true;
-
-            //chkPlay.Checked = false; // ==> stop
-
-            LogMessage("INF", $"Opening file: {fn}");
-
-            using (new WaitCursor())
-            {
-                try
-                {
-                    if (File.Exists(fn))
-                    {
-                        switch (Path.GetExtension(fn).ToLower())
-                        {
-                            case ".wav":
-                            case ".mp3":
-                            case ".m4a":
-                            case ".flac":
-                                //_wavePlayer!.Visible = true;
-                                //_midiPlayer!.Visible = false;
-                                //_player = _wavePlayer;
-                                break;
-
-                            case ".mid":
-                                //_wavePlayer!.Visible = false;
-                                //_midiPlayer!.Visible = true;
-                                //_player = _midiPlayer;
-                                break;
-
-                            default:
-                                LogMessage("ERR", $"Invalid file type: {fn}");
-                                ok = false;
-                                break;
-                        }
-
-                        if (ok)
-                        {
-                            //ok = _player!.OpenFile(fn);
-                            //if (_settings.Autoplay)
-                            //{
-                            //    chkPlay.Checked = true; // ==> run
-                            //}
-                        }
-                    }
-                    else
-                    {
-                        LogMessage("ERR", $"Invalid file: {fn}");
-                        ok = false;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogMessage("ERR", $"Couldn't open the file: {fn} because: {ex.Message}");
-                    ok = false;
-                }
-            }
-
-            if (ok)
-            {
-                Text = $"NOrfima {MiscUtils.GetVersionString()} - {fn}";
-                _settings.RecentFiles.UpdateMru(fn);
-            }
-            else
-            {
-                Text = $"NOrfima {MiscUtils.GetVersionString()} - No file loaded";
-            }
-
-            return ok;
-        }
-        #endregion
-
-        #region Navigator functions
         /// <summary>
         /// Initialize tree from user settings.
         /// </summary>
         void InitNavigator()
         {
-            ftreeLeft.FilterExts = _fileTypes.ToList();
+            ftreeLeft.FilterExts.Clear();
+            ftreeLeft.FilterExts.Add(".txt");
 
             if (_settings.RootDirs.Count == 0)
             {
@@ -362,19 +216,16 @@ namespace NOrfima
         /// <param name="fn"></param>
         void FtreeLeft_FileSelectedEvent(object? sender, string fn)
         {
-            OpenFile(fn);
-            _fn = fn;
+            //OpenFile(fn);
+            //_fn = fn;
         }
-        #endregion
 
-        private void Debug_Click(object sender, EventArgs e)
+        void Debug_Click(object sender, EventArgs e)
         {
-            new TaskBar().Show();
         }
     }
 
 
-    ///////////////////////////////// UserSettings ///////////////////////////////
     [Serializable]
     public class UserSettings
     {
@@ -385,12 +236,6 @@ namespace NOrfima
         [Browsable(true)]
         [Editor(typeof(StringListEditor), typeof(UITypeEditor))] // Should be a proper folder picker.
         public List<string> RootDirs { get; set; } = new List<string>();
-
-        [DisplayName("Dump To Clipboard")]
-        [Description("Otherwise to file.")]
-        [Category("Navigator")]
-        [Browsable(true)]
-        public bool DumpToClip { get; set; } = false;
 
         [DisplayName("Control Color")]
         [Description("Pick what you like.")]
@@ -404,9 +249,6 @@ namespace NOrfima
         [Browsable(false)]
         [JsonConverter(typeof(JsonRectangleConverter))]
         public Rectangle FormGeometry { get; set; } = new Rectangle(50, 50, 800, 800);
-
-        //[Browsable(false)]
-        //public bool Autoplay { get; set; } = true;
 
         [Browsable(false)]
         public List<string> RecentFiles { get; set; } = new List<string>();

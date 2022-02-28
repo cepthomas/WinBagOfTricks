@@ -7,17 +7,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
+using System.Reflection;
 using Microsoft.WindowsAPICodePack.Taskbar;
 using Microsoft.WindowsAPICodePack.Shell;
 using NBagOfTricks;
 using NBagOfUis;
-using System.IO;
-using System.Reflection;
 
 namespace NOrfima
 {
     public partial class TaskBar : Form
     {
+        RichTextBox rtbInfo;
+
         /// <summary>The jumplist.</summary>
         readonly JumpList _jl = JumpList.CreateJumpList();
 
@@ -30,8 +32,34 @@ namespace NOrfima
         /// </summary>
         public TaskBar()
         {
-            InitializeComponent();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TaskBar));
+            
+            rtbInfo = new();
+            rtbInfo.Location = new(12, 12);
+            rtbInfo.Size = new(535, 407);
+            Controls.Add(rtbInfo);
+
+            AutoScaleDimensions = new(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new(554, 431);
+            Load += TaskBar_Load;
+            Shown += TaskBar_Shown;
         }
+
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                rtbInfo.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
 
         /// <summary>
         /// Show stuff.
