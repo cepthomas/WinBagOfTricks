@@ -70,7 +70,7 @@ namespace NOrfima
 
             Text = $"NOrfima {MiscUtils.GetVersionString()} - No file loaded";
 
-            new ClipboardMonitor().Show();
+            new ClipEx().Show();
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace NOrfima
         private void MainForm_Shown(object? sender, EventArgs e)
         {
             // Jumplist population is after a valid window shown.
-            new TaskBar().Show();
+            // new TaskBar().Show();
         }
 
         /// <summary>

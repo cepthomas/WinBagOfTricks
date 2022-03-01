@@ -16,7 +16,7 @@ using NBagOfTricks;
 
 namespace NOrfima
 {
-    public partial class ClipboardMonitor : Form
+    public partial class ClipEx : Form
     {
         #region Fields
         IntPtr _nextClipboardViewer;
@@ -52,8 +52,9 @@ namespace NOrfima
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ClipboardMonitor()
+        public ClipEx()
         {
+            Text = "ClipEx";
             ClientSize = new(800, 500);
             rtbInfo.Dock = DockStyle.Fill;
             rtbInfo.WordWrap = false;
@@ -93,8 +94,6 @@ namespace NOrfima
             // Sent when the contents of the clipboard have changed.
             //const int WM_CLIPBOARDUPDATE = 0x031D;
 
-            int hres = 0;
-
             switch (m.Msg)
             {
                 case WM_DRAWCLIPBOARD:
@@ -133,14 +132,13 @@ namespace NOrfima
                         LogMessage("ERR", ex.ToString());
                     }
 
-
-                    //ClipboardChanged?.Invoke(this, new ClipboardChangedEventArgs(dataObj));
-
                     // Pass along to the next in the chain.
-                    hres = NativeMethods.SendMessage(_nextClipboardViewer, m.Msg, m.WParam, m.LParam);
-
+                    int hres1 = NativeMethods.SendMessage(_nextClipboardViewer, m.Msg, m.WParam, m.LParam);
+                    if(hres1 > 0)
+                    {
+                        LogMessage("ERR", $"WM_DRAWCLIPBOARD hres:{hres1}");
+                    }
                     break;
-
 
                 case WM_CHANGECBCHAIN:
                     if (m.WParam == _nextClipboardViewer)
@@ -149,24 +147,22 @@ namespace NOrfima
                     }
                     else
                     {
-                        hres = NativeMethods.SendMessage(_nextClipboardViewer, m.Msg, m.WParam, m.LParam);
+                        int hres2 = NativeMethods.SendMessage(_nextClipboardViewer, m.Msg, m.WParam, m.LParam);
+                        if(hres2 > 0)
+                        {
+                            LogMessage("ERR", $"WM_CHANGECBCHAIN hres:{hres2}");
+                        }
                     }
                     break;
 
                 default:
                     base.WndProc(ref m);
                     break;
-
-            }
-
-            if(hres > 0)
-            {
-                LogMessage("ERR", $"hres:{hres}");
             }
         }
 
         /// <summary>
-        /// Do something with the clipboard contents. For now, just whow it.
+        /// Do something with the clipboard contents. For now, just show it.
         /// </summary>
         /// <param name="dobj"></param>
         void ProcessObject(IDataObject? dobj)
@@ -176,16 +172,19 @@ namespace NOrfima
                 // Assemble info.
                 var dtypes = dobj.GetFormats();
 
-               // var appName = GetApplicationName();
                 IntPtr hwnd = NativeMethods.GetForegroundWindow();
 
                 uint hres = NativeMethods.GetWindowThreadProcessId((int)hwnd, out int processID);
+                if (hres > 0)
+                {
+                    LogMessage("ERR", $"ProcessObject hres:{hres}");
+                }
 
                 var procName = Process.GetProcessById(processID).ProcessName;
                 var appPath = Process.GetProcessById(processID).MainModule!.FileName;
                 var appName = Path.GetFileName(appPath);
-
                 var winTitle = "Nothing here";
+
                 const int capacity = 256;
                 StringBuilder content = new(capacity);
                 IntPtr handle = NativeMethods.GetForegroundWindow();

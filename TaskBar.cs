@@ -32,13 +32,12 @@ namespace NOrfima
         /// </summary>
         public TaskBar()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TaskBar));
-            
             rtbInfo = new();
             rtbInfo.Location = new(12, 12);
             rtbInfo.Size = new(535, 407);
             Controls.Add(rtbInfo);
 
+            Text = "TaskBar";
             AutoScaleDimensions = new(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new(554, 431);
