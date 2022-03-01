@@ -16,7 +16,7 @@ using NBagOfTricks;
 using NBagOfUis;
 
 
-namespace NOrfima
+namespace WinBagOfTricks
 {
     public partial class MainForm : Form
     {
@@ -40,7 +40,7 @@ namespace NOrfima
         void MainForm_Load(object? sender, EventArgs e)
         {
             // Get the settings.
-            string appDir = MiscUtils.GetAppDataDir("NOrfima", "Ephemera");
+            string appDir = MiscUtils.GetAppDataDir("WinBagOfTricks", "Ephemera");
             DirectoryInfo di = new(appDir);
             di.Create();
             _settings = UserSettings.Load(appDir);
@@ -68,7 +68,7 @@ namespace NOrfima
 
             InitNavigator();
 
-            Text = $"NOrfima {MiscUtils.GetVersionString()} - No file loaded";
+            Text = $"WinBagOfTricks {MiscUtils.GetVersionString()} - No file loaded";
 
             new ClipEx().Show();
         }

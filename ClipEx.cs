@@ -14,7 +14,7 @@ using NBagOfTricks;
 
 
 
-namespace NOrfima
+namespace WinBagOfTricks
 {
     public partial class ClipEx : Form
     {

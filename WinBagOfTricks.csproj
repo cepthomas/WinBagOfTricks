@@ -4,10 +4,10 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <AssemblyName>NOrfima</AssemblyName>
+    <AssemblyName>WinBagOfTricks</AssemblyName>
     <Deterministic>False</Deterministic>
     <Version>1.2.3</Version>
-    <Description>NOrfima application</Description>
+    <Description>WinBagOfTricks application</Description>
     <Copyright>MIT License</Copyright>
     <OutputPath>bin\</OutputPath>
     <!-- <DefineConstants>DEBUG;TRACE</DefineConstants> -->

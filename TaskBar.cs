@@ -14,7 +14,7 @@ using Microsoft.WindowsAPICodePack.Shell;
 using NBagOfTricks;
 using NBagOfUis;
 
-namespace NOrfima
+namespace WinBagOfTricks
 {
     public partial class TaskBar : Form
     {

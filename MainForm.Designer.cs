@@ -1,4 +1,4 @@
-﻿namespace NOrfima
+﻿namespace WinBagOfTricks
 {
     partial class MainForm
     {
@@ -63,7 +63,7 @@
             // fileDropDownButton
             // 
             this.fileDropDownButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.fileDropDownButton.Image = global::NOrfima.Properties.Resources.glyphicons_37_file;
+            this.fileDropDownButton.Image = global::WinBagOfTricks.Properties.Resources.glyphicons_37_file;
             this.fileDropDownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.fileDropDownButton.Name = "fileDropDownButton";
             this.fileDropDownButton.Size = new System.Drawing.Size(34, 24);
@@ -73,7 +73,7 @@
             // btnSettings
             // 
             this.btnSettings.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnSettings.Image = global::NOrfima.Properties.Resources.glyphicons_137_cogwheel;
+            this.btnSettings.Image = global::WinBagOfTricks.Properties.Resources.glyphicons_137_cogwheel;
             this.btnSettings.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnSettings.Name = "btnSettings";
             this.btnSettings.Size = new System.Drawing.Size(29, 24);
@@ -84,7 +84,7 @@
             // btnAbout
             // 
             this.btnAbout.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnAbout.Image = global::NOrfima.Properties.Resources.glyphicons_195_question_sign;
+            this.btnAbout.Image = global::WinBagOfTricks.Properties.Resources.glyphicons_195_question_sign;
             this.btnAbout.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnAbout.Name = "btnAbout";
             this.btnAbout.Size = new System.Drawing.Size(29, 24);
@@ -96,7 +96,7 @@
             // 
             this.btnLoop.CheckOnClick = true;
             this.btnLoop.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnLoop.Image = global::NOrfima.Properties.Resources.glyphicons_82_refresh;
+            this.btnLoop.Image = global::WinBagOfTricks.Properties.Resources.glyphicons_82_refresh;
             this.btnLoop.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnLoop.Name = "btnLoop";
             this.btnLoop.Size = new System.Drawing.Size(29, 24);
@@ -113,6 +113,7 @@
             // 
             // splitContainer1
             // 
+            this.splitContainer1.Cursor = System.Windows.Forms.Cursors.VSplit;
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.Location = new System.Drawing.Point(0, 27);
             this.splitContainer1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -126,7 +127,7 @@
             // 
             this.splitContainer1.Panel2.Controls.Add(this.txtViewer);
             this.splitContainer1.Size = new System.Drawing.Size(1395, 827);
-            this.splitContainer1.SplitterDistance = 677;
+            this.splitContainer1.SplitterDistance = 491;
             this.splitContainer1.TabIndex = 1;
             // 
             // ftreeLeft
@@ -146,7 +147,7 @@
             this.txtViewer.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtViewer.MaxText = 5000;
             this.txtViewer.Name = "txtViewer";
-            this.txtViewer.Size = new System.Drawing.Size(521, 316);
+            this.txtViewer.Size = new System.Drawing.Size(725, 365);
             this.txtViewer.TabIndex = 58;
             this.txtViewer.Text = "";
             // 
