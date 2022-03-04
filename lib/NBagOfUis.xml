@@ -1342,23 +1342,6 @@
             </summary>
             <param name="e"></param>
         </member>
-        <member name="F:NBagOfUis.UserControl1.components">
-            <summary> 
-            Required designer variable.
-            </summary>
-        </member>
-        <member name="M:NBagOfUis.UserControl1.Dispose(System.Boolean)">
-            <summary> 
-            Clean up any resources being used.
-            </summary>
-            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        </member>
-        <member name="M:NBagOfUis.UserControl1.InitializeComponent">
-            <summary> 
-            Required method for Designer support - do not modify 
-            the contents of this method with the code editor.
-            </summary>
-        </member>
         <member name="T:NBagOfUis.VirtualKeyboard">
             <summary>
             Virtual keyboard control borrowed from Leslie Sanford with extras.

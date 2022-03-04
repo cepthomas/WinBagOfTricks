@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -14,9 +14,34 @@ using NBagOfTricks;
 
 
 
-namespace WinBagOfTricks
+// TODO multi slot clipboard.
+//  - ST:  { "keys": ["ctrl+k", "ctrl+v"], "command": "paste_from_history" },
+//  - Win: To get to your clipboard history at any time, press Windows logo key + V
+//
+// Clipboard methods: https://docs.microsoft.com/en-us/dotnet/api/system.windows.clipboard?view=windowsdesktop-6.0
+// DataFormats: https://docs.microsoft.com/en-us/dotnet/api/system.windows.dataformats?view=windowsdesktop-6.0
+// IDataObject: https://docs.microsoft.com/en-us/dotnet/api/system.windows.idataobject?view=windowsdesktop-6.0
+//
+// A window should use the clipboard when cutting, copying, or pasting data. A window places data on the clipboard for
+//  cut and copy operations and retrieves data from the clipboard for paste operations.
+// 
+// To place information on the clipboard, a window first clears any previous clipboard content by using the EmptyClipboard function.
+// This function sends the WM_DESTROYCLIPBOARD message to the previous clipboard owner, frees resources associated with data on
+// the clipboard, and assigns clipboard ownership to the window that has the clipboard open.To find out which window owns the
+// clipboard, call the GetClipboardOwner function.
+// 
+// After emptying the clipboard, the window places data on the clipboard in as many clipboard formats as possible, ordered from
+// the most descriptive clipboard format to the least descriptive. For each format, the window calls the SetClipboardData function,
+// specifying the format identifier and a global memory handle. The memory handle can be NULL, indicating that the window renders
+// the data on request. For more information, see Delayed Rendering.
+// 
+// To examine the formats of data on the system Clipboard, call GetFormats on the data object returned by this method.
+// To retrieve data from the system Clipboard, call GetData and specify the desired data format.
+
+
+namespace ClipboardEx
 {
-    public partial class ClipEx : Form
+    public partial class ClipboardEx : Form
     {
         #region Fields
         IntPtr _nextClipboardViewer;
@@ -52,9 +77,9 @@ namespace WinBagOfTricks
         /// <summary>
         /// Constructor.
         /// </summary>
-        public ClipEx()
+        public ClipboardEx()
         {
-            Text = "ClipEx";
+            Text = "ClipboardEx";
             ClientSize = new(800, 500);
             rtbInfo.Dock = DockStyle.Fill;
             rtbInfo.WordWrap = false;
@@ -103,9 +128,9 @@ namespace WinBagOfTricks
                     {
                         dobj = Clipboard.GetDataObject();
                     }
-                    catch (Exception ex) // TODO ExternalException?
+                    catch (Exception ex)
                     {
-                        LogMessage("ERR", ex.ToString());
+                        LogMessage("ERR", $"WM_DRAWCLIPBOARD1:{ex}");
                     }
 
                     try
@@ -127,16 +152,16 @@ namespace WinBagOfTricks
                             // bool ContainsText();
                         }
                     }
-                    catch (Exception ex) // TODO?
+                    catch (Exception ex)
                     {
-                        LogMessage("ERR", ex.ToString());
+                        LogMessage("ERR", $"WM_DRAWCLIPBOARD2:{ex}");
                     }
 
                     // Pass along to the next in the chain.
                     int hres1 = NativeMethods.SendMessage(_nextClipboardViewer, m.Msg, m.WParam, m.LParam);
                     if(hres1 > 0)
                     {
-                        LogMessage("ERR", $"WM_DRAWCLIPBOARD hres:{hres1}");
+                        LogMessage("ERR", $"WM_DRAWCLIPBOARD3 hres:{hres1}");
                     }
                     break;
 
@@ -150,7 +175,7 @@ namespace WinBagOfTricks
                         int hres2 = NativeMethods.SendMessage(_nextClipboardViewer, m.Msg, m.WParam, m.LParam);
                         if(hres2 > 0)
                         {
-                            LogMessage("ERR", $"WM_CHANGECBCHAIN hres:{hres2}");
+                            LogMessage("ERR", $"WM_CHANGECBCHAIN1 hres:{hres2}");
                         }
                     }
                     break;

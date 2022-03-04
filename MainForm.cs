@@ -69,8 +69,6 @@ namespace WinBagOfTricks
             InitNavigator();
 
             Text = $"WinBagOfTricks {MiscUtils.GetVersionString()} - No file loaded";
-
-            new ClipEx().Show();
         }
 
         /// <summary>

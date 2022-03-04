@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace WinBagOfTricks.Properties {
+namespace TrayEx.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace WinBagOfTricks.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("WinBagOfTricks.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("TrayEx.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -63,9 +63,9 @@ namespace WinBagOfTricks.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        internal static System.Drawing.Icon cibuddy_green {
+        internal static System.Drawing.Icon Felipe {
             get {
-                object obj = ResourceManager.GetObject("cibuddy_green", resourceCulture);
+                object obj = ResourceManager.GetObject("Felipe", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
             }
         }
@@ -73,69 +73,9 @@ namespace WinBagOfTricks.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
         /// </summary>
-        internal static System.Drawing.Icon cibuddy_red {
+        internal static System.Drawing.Icon Regina {
             get {
-                object obj = ResourceManager.GetObject("cibuddy_red", resourceCulture);
-                return ((System.Drawing.Icon)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
-        /// </summary>
-        internal static System.Drawing.Icon cibuddy_yellow {
-            get {
-                object obj = ResourceManager.GetObject("cibuddy_yellow", resourceCulture);
-                return ((System.Drawing.Icon)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap glyphicons_137_cogwheel {
-            get {
-                object obj = ResourceManager.GetObject("glyphicons_137_cogwheel", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap glyphicons_195_question_sign {
-            get {
-                object obj = ResourceManager.GetObject("glyphicons_195_question_sign", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap glyphicons_37_file {
-            get {
-                object obj = ResourceManager.GetObject("glyphicons_37_file", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap glyphicons_82_refresh {
-            get {
-                object obj = ResourceManager.GetObject("glyphicons_82_refresh", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
-        /// </summary>
-        internal static System.Drawing.Icon Poulpo {
-            get {
-                object obj = ResourceManager.GetObject("Poulpo", resourceCulture);
+                object obj = ResourceManager.GetObject("Regina", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
             }
         }

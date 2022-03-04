@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-
-namespace WinBagOfTricks
+namespace TaskBar
 {
     static class Program
     {
@@ -19,7 +17,7 @@ namespace WinBagOfTricks
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainForm());
+            Application.Run(new TaskBar());
         }
     }
 }

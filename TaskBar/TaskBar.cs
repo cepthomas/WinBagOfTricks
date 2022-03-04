@@ -14,7 +14,8 @@ using Microsoft.WindowsAPICodePack.Shell;
 using NBagOfTricks;
 using NBagOfUis;
 
-namespace WinBagOfTricks
+
+namespace TaskBar
 {
     public partial class TaskBar : Form
     {
@@ -172,4 +173,7 @@ namespace WinBagOfTricks
             rtbInfo.AppendText(s);
         }
     }
+
+
+
 }
