@@ -4,10 +4,9 @@ A place to play.
 
 ![logo](felix.png)
 
-- Orthodox File Manager (or general Explorer helpers?) TBD
+- Tray demo.
 - Clipboard tools.
 - A simple taskbar/jumplist manager.
-- Note taker/renderer???
 
 
 Requires VS2019 and .NET5.

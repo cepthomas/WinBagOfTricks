@@ -5,7 +5,6 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Reflection;
@@ -19,10 +18,9 @@ namespace TaskBar
 {
     public partial class TaskBar : Form
     {
-        RichTextBox rtbInfo;
-
         /// <summary>The jumplist.</summary>
-        readonly JumpList _jl = JumpList.CreateJumpList();
+        JumpList _jl;
+        private RichTextBox rtbInfo;
 
         /// <summary>Filter recents.</summary>
         readonly string _filters = "bat cmd config css csv json log md txt xml";
@@ -46,7 +44,6 @@ namespace TaskBar
             Shown += TaskBar_Shown;
         }
 
-
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -59,7 +56,6 @@ namespace TaskBar
             }
             base.Dispose(disposing);
         }
-
 
         /// <summary>
         /// Show stuff.
@@ -102,6 +98,7 @@ namespace TaskBar
         /// </summary>
         private void BuildMyList()
         {
+            _jl = JumpList.CreateJumpList();
             _jl.ClearAllUserTasks();
             _jl.KnownCategoryToDisplay = JumpListKnownCategoryType.Recent;
 
@@ -146,9 +143,9 @@ namespace TaskBar
             });
             _jl.AddUserTasks(new JumpListSeparator());
 
-            ///// Add call to myself. Note this actually goes to MainForm.
+            ///// Add call to myself. Note this actually goes to MainForm. TODO
             var assy = Assembly.GetEntryAssembly();
-            var loc = assy!.Location.Replace(".dll", ".exe"); // TODO ??
+            var loc = assy!.Location.Replace(".dll", ".exe");
 
             _jl.AddUserTasks(new JumpListLink(loc, "Configure")
             {
@@ -172,8 +169,24 @@ namespace TaskBar
             string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} {msg}{Environment.NewLine}";
             rtbInfo.AppendText(s);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void InitializeComponent()
+        {
+            rtbInfo = new RichTextBox();
+            SuspendLayout();
+            rtbInfo.Location = new Point(12, 33);
+            rtbInfo.Name = "rtbInfo";
+            rtbInfo.Size = new Size(258, 208);
+            rtbInfo.TabIndex = 0;
+            rtbInfo.Text = "";
+
+            ClientSize = new Size(282, 253);
+            Controls.Add(rtbInfo);
+            Name = "TaskBar";
+            ResumeLayout(false);
+        }
     }
-
-
-
 }

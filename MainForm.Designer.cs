@@ -145,7 +145,7 @@
             // txtViewer
             // 
             this.txtViewer.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.txtViewer.Location = new System.Drawing.Point(35, 158);
+            this.txtViewer.Location = new System.Drawing.Point(29, 174);
             this.txtViewer.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.txtViewer.MaxText = 5000;
             this.txtViewer.Name = "txtViewer";
