@@ -20,27 +20,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="ApplicationContextExample\**" />
-    <Compile Remove="CIBuddy\**" />
     <Compile Remove="ClipboardEx\**" />
-    <Compile Remove="stuff\**" />
-    <Compile Remove="TaskBar\**" />
+    <Compile Remove="JumpListEx\**" />
     <Compile Remove="TrayEx\**" />
-    <Compile Remove="UploadMonitor\**" />
-    <EmbeddedResource Remove="ApplicationContextExample\**" />
-    <EmbeddedResource Remove="CIBuddy\**" />
     <EmbeddedResource Remove="ClipboardEx\**" />
-    <EmbeddedResource Remove="stuff\**" />
-    <EmbeddedResource Remove="TaskBar\**" />
+    <EmbeddedResource Remove="JumpListEx\**" />
     <EmbeddedResource Remove="TrayEx\**" />
-    <EmbeddedResource Remove="UploadMonitor\**" />
-    <None Remove="ApplicationContextExample\**" />
-    <None Remove="CIBuddy\**" />
     <None Remove="ClipboardEx\**" />
-    <None Remove="stuff\**" />
-    <None Remove="TaskBar\**" />
+    <None Remove="JumpListEx\**" />
     <None Remove="TrayEx\**" />
-    <None Remove="UploadMonitor\**" />
   </ItemGroup>
 
   <ItemGroup>

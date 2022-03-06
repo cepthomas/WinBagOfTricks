@@ -13,6 +13,17 @@ using System.Text.Json;
 using NBagOfTricks;
 using NBagOfUis;
 
+// commander:
+// - Two panes for copy/cut/paste. To recycle bin.
+// - Embed in shell?
+// - Quick rename.
+// - File Preview - text, hex, image, 
+// - Terminal/shell == sbot_cmd_line, sbot_sidebar_terminal, sbot_sidebar_exec 
+// - Command line for starting of programs with parameters, simply by typing the program name or by pressing CTRL+ENTER or CTRL+SHIFT+ENTER.
+// - Utils:  ??? SBOT stuff: sbot_sidebar_copy_file  xxx_copy_name  xxx_copy_path  xxx_open_browser  xxx_open_folder  xxx_tree
+// - Macros/scripts?
+// - Configurable button bar and Start menu (User-defined commands) to place your frequently used DOS or Windows programs into a drop-down menu. The actual directory and/or the file under the cursor can be delivered to the application.
+// - Configurable main menu.
 
 namespace WinBagOfTricks
 {
@@ -77,7 +88,7 @@ namespace WinBagOfTricks
         private void MainForm_Shown(object? sender, EventArgs e)
         {
             // Jumplist population is after a valid window shown.
-            // new TaskBar().Show();
+            // new JumpListEx().Show();
         }
 
         /// <summary>

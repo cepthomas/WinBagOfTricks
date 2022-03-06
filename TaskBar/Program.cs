@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace TaskBar
+namespace JumpListEx
 {
     static class Program
     {
@@ -17,7 +17,7 @@ namespace TaskBar
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new TaskBar());
+            Application.Run(new JumpListEx());
         }
     }
 }

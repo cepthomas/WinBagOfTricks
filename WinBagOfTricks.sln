@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClipboardEx", "ClipboardEx\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TrayEx", "TrayEx\TrayEx.csproj", "{C4F071C7-E5E4-43D5-8EAE-AE287B59CAEF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskBar", "TaskBar\TaskBar.csproj", "{6C54BE16-04A9-4D55-AB8E-CF0B5F881B0C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JumpListEx", "JumpListEx\JumpListEx.csproj", "{6C54BE16-04A9-4D55-AB8E-CF0B5F881B0C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

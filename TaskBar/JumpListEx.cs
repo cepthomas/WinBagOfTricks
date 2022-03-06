@@ -14,13 +14,12 @@ using NBagOfTricks;
 using NBagOfUis;
 
 
-namespace TaskBar
+namespace JumpListEx
 {
-    public partial class TaskBar : Form
+    public partial class JumpListEx : Form
     {
         /// <summary>The jumplist.</summary>
         JumpList _jl;
-        private RichTextBox rtbInfo;
 
         /// <summary>Filter recents.</summary>
         readonly string _filters = "bat cmd config css csv json log md txt xml";
@@ -29,32 +28,12 @@ namespace TaskBar
         /// <summary>
         /// Constructor.
         /// </summary>
-        public TaskBar()
+        public JumpListEx()
         {
-            rtbInfo = new();
-            rtbInfo.Location = new(12, 12);
-            rtbInfo.Size = new(535, 407);
-            Controls.Add(rtbInfo);
+            InitializeComponent();
 
-            Text = "TaskBar";
-            AutoScaleDimensions = new(8F, 20F);
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new(554, 431);
-            Load += TaskBar_Load;
-            Shown += TaskBar_Shown;
-        }
-
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                rtbInfo.Dispose();
-            }
-            base.Dispose(disposing);
+            Load += JumpListEx_Load;
+            Shown += JumpListEx_Shown;
         }
 
         /// <summary>
@@ -62,7 +41,7 @@ namespace TaskBar
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void TaskBar_Load(object? sender, EventArgs e)
+        private void JumpListEx_Load(object? sender, EventArgs e)
         {
             if (TaskbarManager.IsPlatformSupported)
             {
@@ -88,7 +67,7 @@ namespace TaskBar
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void TaskBar_Shown(object? sender, EventArgs e)
+        private void JumpListEx_Shown(object? sender, EventArgs e)
         {
             BuildMyList();
         }
@@ -168,25 +147,6 @@ namespace TaskBar
             cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
             string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} {msg}{Environment.NewLine}";
             rtbInfo.AppendText(s);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private void InitializeComponent()
-        {
-            rtbInfo = new RichTextBox();
-            SuspendLayout();
-            rtbInfo.Location = new Point(12, 33);
-            rtbInfo.Name = "rtbInfo";
-            rtbInfo.Size = new Size(258, 208);
-            rtbInfo.TabIndex = 0;
-            rtbInfo.Text = "";
-
-            ClientSize = new Size(282, 253);
-            Controls.Add(rtbInfo);
-            Name = "TaskBar";
-            ResumeLayout(false);
         }
     }
 }

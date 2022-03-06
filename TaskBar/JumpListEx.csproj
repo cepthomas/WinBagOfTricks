@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <AssemblyName>TaskBar</AssemblyName>
+    <AssemblyName>JumpListEx</AssemblyName>
     <Deterministic>False</Deterministic>
     <Version>1.2.3</Version>
     <Description>WinBagOfTricks taskbar application</Description>
