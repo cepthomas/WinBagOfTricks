@@ -19,7 +19,7 @@ namespace JumpListEx
     public partial class JumpListEx : Form
     {
         /// <summary>The jumplist.</summary>
-        JumpList _jl;
+        JumpList? _jl;
 
         /// <summary>Filter recents.</summary>
         readonly string _filters = "bat cmd config css csv json log md txt xml";
@@ -30,10 +30,20 @@ namespace JumpListEx
         /// </summary>
         public JumpListEx()
         {
-            InitializeComponent();
+            var args = Environment.GetCommandLineArgs();
 
-            Load += JumpListEx_Load;
-            Shown += JumpListEx_Shown;
+            if(args.Contains("config_taskbar"))
+            {
+                MessageBox.Show("Do some configuring then exit");
+                Environment.Exit(0);
+            }
+            else
+            {
+                InitializeComponent();
+
+                Load += JumpListEx_Load;
+                Shown += JumpListEx_Shown;
+            }
         }
 
         /// <summary>
@@ -122,10 +132,9 @@ namespace JumpListEx
             });
             _jl.AddUserTasks(new JumpListSeparator());
 
-            ///// Add call to myself. Note this actually goes to MainForm. TODO
+            ///// Add call to myself. Note this actually goes to MainForm.
             var assy = Assembly.GetEntryAssembly();
             var loc = assy!.Location.Replace(".dll", ".exe");
-
             _jl.AddUserTasks(new JumpListLink(loc, "Configure")
             {
                 IconReference = new IconReference(loc, 0),
