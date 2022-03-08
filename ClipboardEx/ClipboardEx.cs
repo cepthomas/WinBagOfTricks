@@ -128,7 +128,7 @@ namespace ClipboardEx
         #endregion
 
         /// <summary>
-        /// Handle window message.
+        /// Handle window message. TODO play with some more.
         /// </summary>
         /// <param name="m"></param>
         protected override void WndProc(ref Message m)
