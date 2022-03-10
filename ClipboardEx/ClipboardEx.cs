@@ -13,72 +13,19 @@ using System.IO;
 using NBagOfTricks;
 
 
-
-// Clipboard methods: https://docs.microsoft.com/en-us/dotnet/api/system.windows.clipboard?view=windowsdesktop-6.0
-// DataFormats: https://docs.microsoft.com/en-us/dotnet/api/system.windows.dataformats?view=windowsdesktop-6.0
-// IDataObject: https://docs.microsoft.com/en-us/dotnet/api/system.windows.idataobject?view=windowsdesktop-6.0
-//
-// A window should use the clipboard when cutting, copying, or pasting data. A window places data on the clipboard for
-//  cut and copy operations and retrieves data from the clipboard for paste operations.
-// 
-// To place information on the clipboard, a window first clears any previous clipboard content by using the EmptyClipboard function.
-// This function sends the WM_DESTROYCLIPBOARD message to the previous clipboard owner, frees resources associated with data on
-// the clipboard, and assigns clipboard ownership to the window that has the clipboard open.To find out which window owns the
-// clipboard, call the GetClipboardOwner function.
-// 
-// After emptying the clipboard, the window places data on the clipboard in as many clipboard formats as possible, ordered from
-// the most descriptive clipboard format to the least descriptive. For each format, the window calls the SetClipboardData function,
-// specifying the format identifier and a global memory handle. The memory handle can be NULL, indicating that the window renders
-// the data on request. For more information, see Delayed Rendering.
-// 
-// To examine the formats of data on the system Clipboard, call GetFormats on the data object returned by this method.
-// To retrieve data from the system Clipboard, call GetData and specify the desired data format.
-
-// The clipboard owner is the window associated with the information on the clipboard. A window becomes the clipboard owner when it
-// places data on the clipboard, specifically, when it calls the EmptyClipboard function. The window remains the clipboard owner until
-// it is closed or another window empties the clipboard.
-
-// When the clipboard is emptied, the clipboard owner receives a WM_DESTROYCLIPBOARD message. Following are some reasons why a window
-// might process this message:
-//  - The window delayed rendering of one or more clipboard formats. In response to the WM_DESTROYCLIPBOARD message, the window might
-//    free resources it had allocated in order to render data on request. For more information about the rendering of data, see Delayed Rendering.
-//  - The window placed data on the clipboard in a private clipboard format.The data for private clipboard formats is not freed by the
-//    system when the clipboard is emptied. Therefore, the clipboard owner should free the data upon receiving the WM_DESTROYCLIPBOARD message.
-//    For more information about private clipboard formats, see Clipboard Formats.
-//  - The window placed data on the clipboard using the CF_OWNERDISPLAY clipboard format.In response to the WM_DESTROYCLIPBOARD message,
-//    the window might free resources it had used to display information in the clipboard viewer window. For more information about this
-//    alternative format, see Owner Display Format.
-
-
 namespace ClipboardEx
 {
     public partial class ClipboardEx : Form
     {
         #region Fields
         IntPtr _nextCb;
+
+        record MsgSpec(string Name, Func<Message, uint> Handler, string Description);
+
+        readonly Dictionary<int, MsgSpec> _messages;
         #endregion
 
-        #region Windows Constants
-        // Sent to the first window in the clipboard viewer chain when the content of the clipboard changes.
-        const int WM_DRAWCLIPBOARD = 0x308;
-
-        // Sent to the first window in the clipboard viewer chain when a window is being removed from the chain.
-        const int WM_CHANGECBCHAIN = 0x030D;
-
-        // Sent when the contents of the clipboard have changed.
-        const int WM_CLIPBOARDUPDATE = 0x031D;
-
-        const int WM_DESTROYCLIPBOARD = 0x0307;
-
-        // Sent to the clipboard owner by a clipboard viewer window to request the name of a CF_OWNERDISPLAY clipboard format.
-        const int WM_ASKCBFORMATNAME = 0x030C;
-
-        const int WM_CLEAR = 0x0303;
-        const int WM_COPY = 0x0301;
-        const int WM_CUT = 0x0300;
-        const int WM_PASTE = 0x0302;
-        #endregion
-
+        #region Interop
         internal class NativeMethods
         {
             [DllImport("User32.dll")]
@@ -102,6 +49,7 @@ namespace ClipboardEx
             [DllImport("user32")]
             internal static extern UInt32 GetWindowThreadProcessId(Int32 hWnd, out Int32 lpdwProcessId);
         }
+        #endregion
 
         #region Lifecycle
         /// <summary>
@@ -114,6 +62,19 @@ namespace ClipboardEx
             InitializeComponent();
 
             _nextCb = (IntPtr)NativeMethods.SetClipboardViewer((int)Handle);
+
+            _messages = new()
+            {
+                { 0x0308, new("WM_DRAWCLIPBOARD",    CbDraw,    "Sent to the first window in the clipboard viewer chain when the content of the clipboard changes.") },
+                { 0x030D, new("WM_CHANGECBCHAIN",    CbChange,  "Sent to the first window in the clipboard viewer chain when a window is being removed from the chain.") },
+                { 0x031D, new("WM_CLIPBOARDUPDATE",  CbDefault, "Sent when the contents of the clipboard have changed.") },
+                { 0x0307, new("WM_DESTROYCLIPBOARD", CbDefault, "Sent to the clipboard owner when a call to the EmptyClipboard function empties the clipboard.") },
+                { 0x030C, new("WM_ASKCBFORMATNAME",  CbDefault, "Sent to the clipboard owner by a clipboard viewer window to request the name of a CF_OWNERDISPLAY clipboard format.") },
+                { 0x0303, new("WM_CLEAR",            CbDefault, "Clear") },
+                { 0x0301, new("WM_COPY",             CbDefault, "Copy") },
+                { 0x0300, new("WM_CUT",              CbDefault, "Cut") },
+                { 0x0302, new("WM_PASTE",            CbDefault, "Paste") }
+            };
         }
 
         /// <summary>
@@ -133,109 +94,133 @@ namespace ClipboardEx
         /// <param name="m"></param>
         protected override void WndProc(ref Message m)
         {
-            switch (m.Msg)
+            uint ret = 0;
+
+            if(_messages is not null && _messages.ContainsKey(m.Msg))
             {
-                case WM_CLEAR:
-                    LogMessage("INF", $"WM_CLEAR");
-                    break;
+                MsgSpec sp = _messages[m.Msg];
 
-                case WM_COPY:
-                    LogMessage("INF", $"WM_COPY");
-                    break;
+                ret = sp.Handler(m);
 
-                case WM_CUT:
-                    LogMessage("INF", $"WM_CUT");
-                    break;
+                if(ret > 0)
+                {
+                    LogMessage("ERR", $"{sp.Name} ret:0X{ret:X}");
+                }
+                else
+                {
+                    LogMessage("INF", $"{sp.Name}");
+                }
+            }
+            else
+            {
+                // Ignore.
+                base.WndProc(ref m);
+            }
+        }
 
-                case WM_PASTE:
-                    LogMessage("INF", $"WM_PASTE");
-                    break;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
+        uint CbDraw(Message m)
+        {
+            uint ret;
 
+            try
+            {
+                IDataObject? dobj = Clipboard.GetDataObject();
 
-                case WM_DRAWCLIPBOARD:
-                    IDataObject? dobj = null;
+                // Do something...
+                if (dobj is not null)
+                {
+                    LogMessage("INF", $"============= clip op =================");
 
-                    try
+                    ret = ProcessObject(dobj);
+
+                    if (Clipboard.ContainsText())
                     {
-                        dobj = Clipboard.GetDataObject();
+                        var t = Clipboard.GetText();
                     }
-                    catch (Exception ex)
+                    else if (Clipboard.ContainsFileDropList())
                     {
-                        LogMessage("ERR", $"WM_DRAWCLIPBOARD1:{ex}");
+                        var t = Clipboard.GetFileDropList();
                     }
-
-                    try
+                    else if (Clipboard.ContainsImage())
                     {
-                        // Do something...
-                        if (dobj is not null)
-                        {
-                            LogMessage("INF", $"============= clip op =================");
-                            ProcessObject(dobj);
-
-                            if (Clipboard.ContainsText())
-                            {
-                                var t = Clipboard.GetText();
-                            }
-                            else if (Clipboard.ContainsFileDropList())
-                            {
-                                var t = Clipboard.GetFileDropList();
-                            }
-                            else if (Clipboard.ContainsImage())
-                            {
-                                var t = Clipboard.GetImage();
-                            }
-                            else
-                            {
-                                // Don't care?
-                                //bool ContainsAudio();
-                                //Stream GetAudioStream();
-                            }
-
-                            //void SetFileDropList(StringCollection filePaths);
-                            //void SetImage(Image image);
-                            //void SetText(string text);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        LogMessage("ERR", $"WM_DRAWCLIPBOARD2:{ex}");
-                    }
-
-                    // Pass along to the next in the chain.
-                    int hres1 = NativeMethods.SendMessage(_nextCb, m.Msg, m.WParam, m.LParam);
-                    if(hres1 > 0)
-                    {
-                        LogMessage("ERR", $"WM_DRAWCLIPBOARD3 hres:{hres1}");
-                    }
-                    break;
-
-                case WM_CHANGECBCHAIN:
-                    if (m.WParam == _nextCb)
-                    {
-                        _nextCb = m.LParam;
+                        var t = Clipboard.GetImage();
                     }
                     else
                     {
-                        int hres2 = NativeMethods.SendMessage(_nextCb, m.Msg, m.WParam, m.LParam);
-                        if(hres2 > 0)
-                        {
-                            LogMessage("ERR", $"WM_CHANGECBCHAIN1 hres:{hres2}");
-                        }
+                        // Don't care?
+                        //bool ContainsAudio();
+                        //Stream GetAudioStream();
                     }
-                    break;
 
-                default:
-                    base.WndProc(ref m);
-                    break;
+                    //void SetFileDropList(StringCollection filePaths);
+                    //void SetImage(Image image);
+                    //void SetText(string text);
+                }
             }
+            catch (ExternalException ex)
+            {
+                // TODO retry: Data could not be retrieved from the Clipboard. This typically occurs when the Clipboard is being used by another process.
+                LogMessage("ERR", $"WM_DRAWCLIPBOARD ExternalException:{ex}");
+            }
+            catch (Exception ex)
+            {
+                LogMessage("ERR", $"WM_DRAWCLIPBOARD Exception:{ex}");
+            }
+
+            // Pass along to the next in the chain.
+            ret = (uint)NativeMethods.SendMessage(_nextCb, m.Msg, m.WParam, m.LParam);
+
+            return ret;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
+        uint CbChange(Message m)
+        {
+            uint ret = 0;
+
+            if (m.WParam == _nextCb)
+            {
+                // Fix our copy of the chain.
+                _nextCb = m.LParam;
+            }
+            else
+            {
+                // Just pass along to the next in the chain.
+                ret = (uint)NativeMethods.SendMessage(_nextCb, m.Msg, m.WParam, m.LParam);
+            }
+
+            return ret;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
+        uint CbDefault(Message m)
+        {
+            uint ret = 0;
+            base.WndProc(ref m);
+            return ret;
         }
 
         /// <summary>
         /// Do something with the clipboard contents. For now, just show it.
         /// </summary>
         /// <param name="dobj"></param>
-        void ProcessObject(IDataObject? dobj)
+        uint ProcessObject(IDataObject? dobj)
         {
+            uint ret = 0;
+
             if (dobj is not null)
             {
                 // Assemble info.
@@ -243,11 +228,7 @@ namespace ClipboardEx
 
                 IntPtr hwnd = NativeMethods.GetForegroundWindow();
 
-                uint hres = NativeMethods.GetWindowThreadProcessId((int)hwnd, out int processID);
-                if (hres > 0)
-                {
-                    LogMessage("ERR", $"ProcessObject hres:{hres}");
-                }
+                NativeMethods.GetWindowThreadProcessId((int)hwnd, out int processID);
 
                 var procName = Process.GetProcessById(processID).ProcessName;
                 var appPath = Process.GetProcessById(processID).MainModule!.FileName;
@@ -263,9 +244,11 @@ namespace ClipboardEx
                     winTitle = content.ToString();
                 }
 
-                LogMessage("INF", $"dtypes:{string.Join(",", dtypes)}");
+                //LogMessage("INF", $"dtypes:{string.Join(",", dtypes)}");
                 LogMessage("INF", $"appName:{appName} procName:{procName} winTitle:{winTitle}");
             }
+
+            return ret;
         }
 
         /// <summary>

@@ -42,7 +42,7 @@ namespace TrayEx
             ctxm.Items.Add("close", null, Menu_Click);
             ctxm.Opening += ContextMenu_Opening;
 
-            var sf = Image.FromFile("glyphicons-22-snowflake.png"); // 26x26
+            var sf = (Bitmap)Image.FromFile("glyphicons-22-snowflake.png"); // 26x26
             var img1 = GraphicsUtils.ColorizeBitmap(sf, Color.LightGreen);
             var img2 = GraphicsUtils.ColorizeBitmap(sf, Color.Red);
             _icon1 = IconFromImage(img1);

@@ -13,17 +13,7 @@ using System.Text.Json;
 using NBagOfTricks;
 using NBagOfUis;
 
-// commander:
-// - Two panes for copy/cut/paste. To recycle bin.
-// - Embed in shell?
-// - Quick rename.
-// - File Preview - text, hex, image, 
-// - Terminal/shell == sbot_cmd_line, sbot_sidebar_terminal, sbot_sidebar_exec 
-// - Command line for starting of programs with parameters, simply by typing the program name or by pressing CTRL+ENTER or CTRL+SHIFT+ENTER.
-// - Utils:  ??? SBOT stuff: sbot_sidebar_copy_file  xxx_copy_name  xxx_copy_path  xxx_open_browser  xxx_open_folder  xxx_tree
-// - Macros/scripts?
-// - Configurable button bar and Start menu (User-defined commands) to place your frequently used DOS or Windows programs into a drop-down menu. The actual directory and/or the file under the cursor can be delivered to the application.
-// - Configurable main menu.
+
 
 namespace WinBagOfTricks
 {
@@ -54,7 +44,14 @@ namespace WinBagOfTricks
             di.Create();
             _settings = UserSettings.Load(appDir);
 
-            toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = _settings.ControlColor };
+            // Make it colorful.
+            toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = _settings.SelectedColor };
+
+            fileDropDownButton.Image = GraphicsUtils.ColorizeBitmap((Bitmap)fileDropDownButton.Image, _settings.ControlColor);
+            btnSettings.Image = GraphicsUtils.ColorizeBitmap((Bitmap)btnSettings.Image, _settings.ControlColor);
+            btnAbout.Image = GraphicsUtils.ColorizeBitmap((Bitmap)btnAbout.Image, _settings.ControlColor);
+            btnLoop.Image = GraphicsUtils.ColorizeBitmap((Bitmap)btnLoop.Image, _settings.ControlColor);
+            btnDebug.Image = GraphicsUtils.ColorizeBitmap((Bitmap)btnDebug.Image, _settings.ControlColor);
 
             // Toolbar configs.
             btnLoop.Checked = false;
@@ -81,17 +78,6 @@ namespace WinBagOfTricks
         }
 
         /// <summary>
-        /// Jumplist population is after a valid window.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void MainForm_Shown(object? sender, EventArgs e)
-        {
-            // Jumplist population is after a valid window shown.
-            // new JumpListEx().Show();
-        }
-
-        /// <summary>
         /// Clean up on shutdown. Dispose() will get the rest.
         /// </summary>
         void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
@@ -106,11 +92,7 @@ namespace WinBagOfTricks
         /// </summary>
         void SaveSettings()
         {
-            //_settings.Autoplay = btnAutoplay.Checked;
-            //_settings.Loop = btnLoop.Checked;
-            //_settings.Volume = sldVolume.Value;
             _settings.FormGeometry = new Rectangle(Location.X, Location.Y, Size.Width, Size.Height);
-
             _settings.Save();
         }
 
@@ -119,53 +101,21 @@ namespace WinBagOfTricks
         /// </summary>
         void Settings_Click(object? sender, EventArgs e)
         {
-            using Form f = new()
-            {
-                Text = "User Settings",
-                Size = new Size(450, 450),
-                StartPosition = FormStartPosition.Manual,
-                Location = new Point(200, 200),
-                FormBorderStyle = FormBorderStyle.FixedToolWindow,
-                ShowIcon = false,
-                ShowInTaskbar = false
-            };
-
-            PropertyGridEx pg = new()
-            {
-                Dock = DockStyle.Fill,
-                PropertySort = PropertySort.Categorized,
-                SelectedObject = _settings
-            };
-
-            // Detect changes of interest.
-            bool midiChange = false;
-            bool audioChange = false;
-            bool navChange = false;
-            bool restart = false;
-
-            pg.PropertyValueChanged += (sdr, args) =>
-            {
-                restart |= args.ChangedItem.PropertyDescriptor.Name.EndsWith("Device");
-                midiChange |= args.ChangedItem.PropertyDescriptor.Category == "Midi";
-                audioChange |= args.ChangedItem.PropertyDescriptor.Category == "Audio";
-                navChange |= args.ChangedItem.PropertyDescriptor.Category == "Navigator";
-            };
-
-            f.Controls.Add(pg);
-            f.ShowDialog();
+            var res = _settings.Edit();
 
             // Figure out what changed - each handled differently.
-            if (restart)
+            if (res.restart)
             {
                 MessageBox.Show("Restart required for device changes to take effect");
             }
 
-            if (navChange)
+            if (res.navChange)
             {
                 InitNavigator();
             }
 
-            SaveSettings();
+            _settings.Save();
+
         }
         #endregion
 
@@ -207,7 +157,7 @@ namespace WinBagOfTricks
 
             if (_settings.RootDirs.Count == 0)
             {
-                _settings.RootDirs.Add(@"C:\Dev");
+                _settings.RootDirs.Add(@"C:\");
             }
 
             ftreeLeft.RootDirs = _settings.RootDirs;
@@ -230,79 +180,5 @@ namespace WinBagOfTricks
         void Debug_Click(object sender, EventArgs e)
         {
         }
-    }
-
-
-    [Serializable]
-    public class UserSettings
-    {
-        #region Persisted editable properties
-        [DisplayName("Root Directories")]
-        [Description("Where to look in order as they appear.")]
-        [Category("Navigator")]
-        [Browsable(true)]
-        [Editor(typeof(StringListEditor), typeof(UITypeEditor))] // Should be a proper folder picker.
-        public List<string> RootDirs { get; set; } = new List<string>();
-
-        [DisplayName("Control Color")]
-        [Description("Pick what you like.")]
-        [Category("Cosmetics")]
-        [Browsable(true)]
-        [JsonConverter(typeof(JsonColorConverter))]
-        public Color ControlColor { get; set; } = Color.MediumOrchid;
-        #endregion
-
-        #region Persisted Non-editable Properties
-        [Browsable(false)]
-        [JsonConverter(typeof(JsonRectangleConverter))]
-        public Rectangle FormGeometry { get; set; } = new Rectangle(50, 50, 800, 800);
-
-        [Browsable(false)]
-        public List<string> RecentFiles { get; set; } = new List<string>();
-        #endregion
-
-        #region Fields
-        /// <summary>The file name.</summary>
-        string _fn = "???";
-        #endregion
-
-        #region Persistence
-        /// <summary>Save object to file.</summary>
-        public void Save()
-        {
-            JsonSerializerOptions opts = new() { WriteIndented = true };
-            string json = JsonSerializer.Serialize(this, opts);
-            File.WriteAllText(_fn, json);
-        }
-
-        /// <summary>Create object from file.</summary>
-        public static UserSettings Load(string appDir)
-        {
-            UserSettings us;
-
-            string fn = Path.Combine(appDir, "settings.json");
-
-            if (File.Exists(fn))
-            {
-                string json = File.ReadAllText(fn);
-                UserSettings? set = JsonSerializer.Deserialize<UserSettings>(json);
-                us = set ?? new();
-                us._fn = fn;
-
-                // Clean up any bad file names.
-                us.RecentFiles.RemoveAll(f => !File.Exists(f));
-            }
-            else
-            {
-                // Doesn't exist, create a new one.
-                us = new UserSettings
-                {
-                    _fn = fn
-                };
-            }
-
-            return us;
-        }
-        #endregion
     }
 }
