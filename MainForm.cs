@@ -153,7 +153,7 @@ namespace WinBagOfTricks
         void InitNavigator()
         {
             ftreeLeft.FilterExts.Clear();
-            ftreeLeft.FilterExts.Add(".txt");
+            ftreeLeft.FilterExts.Add(".txt .cs");
 
             if (_settings.RootDirs.Count == 0)
             {

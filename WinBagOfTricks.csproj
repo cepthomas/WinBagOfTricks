@@ -21,12 +21,15 @@
 
   <ItemGroup>
     <Compile Remove="ClipboardEx\**" />
+    <Compile Remove="clipboard_helper\**" />
     <Compile Remove="JumpListEx\**" />
     <Compile Remove="TrayEx\**" />
     <EmbeddedResource Remove="ClipboardEx\**" />
+    <EmbeddedResource Remove="clipboard_helper\**" />
     <EmbeddedResource Remove="JumpListEx\**" />
     <EmbeddedResource Remove="TrayEx\**" />
     <None Remove="ClipboardEx\**" />
+    <None Remove="clipboard_helper\**" />
     <None Remove="JumpListEx\**" />
     <None Remove="TrayEx\**" />
   </ItemGroup>
