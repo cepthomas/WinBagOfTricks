@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using NBagOfTricks;
-
+using System.Collections;
 
 namespace ClipboardEx
 {
@@ -90,7 +90,6 @@ namespace ClipboardEx
             //// setup a keyboard hook
             //_hhook = NativeMethods.SetWindowsHookEx(2 /*HookType.WH_KEYBOARD*/, _myCallbackDelegate, IntPtr.Zero, AppDomain.GetCurrentThreadId());
 
-
             /////// the other way
             _ghook = new();
         }
@@ -103,6 +102,7 @@ namespace ClipboardEx
         void ClipboardEx_FormClosing(object sender, FormClosingEventArgs e)
         {
             NativeMethods.ChangeClipboardChain(Handle, _nextCb);
+            //_ghook = null;
         }
         #endregion
 
@@ -253,6 +253,12 @@ namespace ClipboardEx
         private void Paste_Click(object sender, EventArgs e)
         {
             Clipboard.SetText("A paste experiment");
+
+
+            ClientStuff cl = new();
+            cl.ForwardDataToClipboard();
+
+
             //void SetFileDropList(StringCollection filePaths);
             //void SetImage(Image image);
             //void SetText(string text);
@@ -336,59 +342,24 @@ namespace ClipboardEx
             public UIntPtr dwExtraInfo;
         }
 
-        /// <summary>
-        /// Enumerates the valid hook types passed as the idHook parameter into a call to SetWindowsHookEx.
-        /// </summary>
+        /// <summary> https://www.pinvoke.net/default.aspx/Enums/HookType.html </summary>
         public enum HookType : int
         {
-            /// Installs a hook procedure that monitors messages generated as a result of an input event in a dialog box,
-            /// message box, menu, or scroll bar. For more information, see the MessageProc hook procedure.
             WH_MSGFILTER = -1,
-            /// Installs a hook procedure that records input messages posted to the system message queue. This hook is
-            /// useful for recording macros. For more information, see the JournalRecordProc hook procedure.
             WH_JOURNALRECORD = 0,
-            /// Installs a hook procedure that posts messages previously recorded by a WH_JOURNALRECORD hook procedure.
-            /// For more information, see the JournalPlaybackProc hook procedure.
             WH_JOURNALPLAYBACK = 1,
-            /// Installs a hook procedure that monitors keystroke messages. For more information, see the KeyboardProc
-            /// hook procedure.
             WH_KEYBOARD = 2,
-            /// Installs a hook procedure that monitors messages posted to a message queue. For more information, see the
-            /// GetMsgProc hook procedure.
             WH_GETMESSAGE = 3,
-            /// Installs a hook procedure that monitors messages before the system sends them to the destination window
-            /// procedure. For more information, see the CallWndProc hook procedure.
             WH_CALLWNDPROC = 4,
-            /// Installs a hook procedure that receives notifications useful to a CBT application. For more information,
-            /// see the CBTProc hook procedure.
             WH_CBT = 5,
-            /// Installs a hook procedure that monitors messages generated as a result of an input event in a dialog box,
-            /// message box, menu, or scroll bar. The hook procedure monitors these messages for all applications in the
-            /// same desktop as the calling thread. For more information, see the SysMsgProc hook procedure.
             WH_SYSMSGFILTER = 6,
-            /// Installs a hook procedure that monitors mouse messages. For more information, see the MouseProc hook
-            /// procedure.
             WH_MOUSE = 7,
-            ///
             WH_HARDWARE = 8,
-            /// Installs a hook procedure useful for debugging other hook procedures. For more information, see the
-            /// DebugProc hook procedure.
             WH_DEBUG = 9,
-            /// Installs a hook procedure that receives notifications useful to shell applications. For more information,
-            /// see the ShellProc hook procedure.
             WH_SHELL = 10,
-            /// Installs a hook procedure that will be called when the application's foreground thread is about to become
-            /// idle. This hook is useful for performing low priority tasks during idle time. For more information, see the
-            /// ForegroundIdleProc hook procedure.
             WH_FOREGROUNDIDLE = 11,
-            /// Installs a hook procedure that monitors messages after they have been processed by the destination window
-            /// procedure. For more information, see the CallWndRetProc hook procedure.
             WH_CALLWNDPROCRET = 12,
-            /// Installs a hook procedure that monitors low-level keyboard input events. For more information, see the
-            /// LowLevelKeyboardProc hook procedure.
             WH_KEYBOARD_LL = 13,
-            /// Installs a hook procedure that monitors low-level mouse input events. For more information, see the
-            /// LowLevelMouseProc hook procedure.
             WH_MOUSE_LL = 14
         }
 
@@ -427,9 +398,9 @@ namespace ClipboardEx
                         return 1;
                     }
 
-                    return CallNextHookEx(_hhook, code, wParam, ref lParam);
 
                     ////////////////////////////////////////////////////////////////
+#if STUFF
                     bool ctrl_pressed = false;
                     bool v_pressed = false;
                     bool shft_pressed = false;
@@ -511,10 +482,14 @@ namespace ClipboardEx
                             return 0;
                         }
                     }
+#endif
 
                     busy = false;
+
+
                 }
             }
+            return CallNextHookEx(_hhook, code, wParam, ref lParam);
         }
 
 
@@ -522,6 +497,9 @@ namespace ClipboardEx
         public globalKeyboardHook()
         {
             _hookProc = HP;
+            IntPtr hInstance = GetModuleHandle("User32.dll");
+            _hhook = SetWindowsHookEx(HookType.WH_KEYBOARD_LL, _hookProc, hInstance, 0);
+
 
             //_hookProc = delegate (int code, int wParam, ref KBDLLHOOKSTRUCT lParam)
             //{
@@ -551,8 +529,7 @@ namespace ClipboardEx
 
             //hook();
             //IntPtr hInstance = LoadLibrary("User32");
-            IntPtr hInstance = GetModuleHandle("User32.dll");
-            _hhook = SetWindowsHookEx(HookType.WH_KEYBOARD_LL, _hookProc, hInstance, 0);
+            //_hhook = SetWindowsHookEx(HookType.WH_KEYBOARD_LL, _hookProc, hInstance, 0);
         }
 
 
@@ -566,19 +543,147 @@ namespace ClipboardEx
             //unhook();
             UnhookWindowsHookEx(_hhook);
         }
+    }
 
 
+    ////////////////////////// Other client stuff //////////////////////////////////////
+
+
+    public class ClientStuff //: Form
+    {
+        [DllImport("user32.dll")]
+        internal static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
+
+        [DllImport("user32", EntryPoint = "VkKeyScan")]
+        internal static extern short VkKeyScan(byte cChar_Renamed);
+
+        [DllImport("user32.dll")]
+        internal static extern bool SetForegroundWindow(int hWnd);
+
+        [DllImport("user32.dll")]
+        internal static extern int SetFocus(int hWnd);
+
+        [DllImport("user32.dll")]
+        internal static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+
+
+        public const int WM_PASTE = 0x0302;
+
+        public const byte VK_CONTROL = 0x11;
+        public const int KEYEVENTF_KEYUP = 0x0002;
+
+        public const int WM_KEYDOWN = 0x0100;
+        public const int WM_KEYUP = 0x0101;
+
+
+
+
+
+
+        public void ForwardDataToClipboard()
+        {
+            // This before called -->
+            // //put the chosen item as last added - so it would be on top of the list
+            // cl.list.Remove(text);
+            // cl.list.Add(text);
+            // cl.prevclipboardcontents = text;
+            // ClipboardListener.SetClipboardText(text);
+            // frm.ForwardDataToClipboard();
+
+
+            //// was:
+            //GetOneDownWindow wnd = new GetOneDownWindow();
+            //int outsideApphwnd = (int)wnd.GetThatWindow(); //wnd.wndArray[1];
+            //SetForegroundWindow(outsideApphwnd);
+            //SetFocus(outsideApphwnd);
+            //keybd_event(VK_CONTROL, 0, 0, 0);
+            //keybd_event((byte)VkKeyScan((byte)'v'), 0, 0, 0);
+            //keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
+            //keybd_event((byte)VkKeyScan((byte)'v'), 0, KEYEVENTF_KEYUP, 0);
+
+
+            // new:
+            //Use GetWindowThreadProcessId to get the process ID, then Process.GetProcessById to retrieve the process information.
+            //The resultant System.Diagnostics.Process Object's MainModule Property has the Filename Property, which is the
+            //Information you are probably searching.
+            IntPtr hwnd = GetForegroundWindow();
+            uint ret = GetWindowThreadProcessId(hwnd, out uint lpdwProcessId);
+            var p = Process.GetProcessById((int)lpdwProcessId);
+
+            Debug.WriteLine($"FileName:{p.MainModule.FileName}");
+
+            //globalKeyboardHook_o code:0 wParam: 256 key: LControlKey scancode:0
+            //globalKeyboardHook_o code:0 wParam: 256 key: V scancode:0
+            //globalKeyboardHook_o code:0 wParam: 257 key: LControlKey scancode:0
+            //globalKeyboardHook_o code:0 wParam: 257 key: V scancode:0
+
+            keybd_event(VK_CONTROL, 0, 0, 0);
+            keybd_event((byte)VkKeyScan((byte)'v'), 0, 0, 0);
+            keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
+            keybd_event((byte)VkKeyScan((byte)'v'), 0, KEYEVENTF_KEYUP, 0);
+        }
+    }
+
+    public class GetOneDownWindow
+    {
+        [DllImport("user32.dll")]
+        private static extern int EnumWindows(EnumWindowsProc ewp, int lParam);
+
+        // [DllImport("user32.dll")]
+        // private static extern int GetWindowText(int hWnd, StringBuilder title, int size);
+
+        [DllImport("user32.dll")]
+        private static extern int GetWindowModuleFileName(int hWnd, StringBuilder title, int size);
+
+        [DllImport("user32.dll")]
+        private static extern bool IsWindowVisible(int hWnd);
+
+        [DllImport("user32.dll")]
+        internal static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+
+        public delegate bool EnumWindowsProc(int hWnd, int lParam);
+
+        public ArrayList wndArray = new(); //array of windows
+
+        public IntPtr GetThatWindow()
+        {
+            EnumWindowsProc ewp = EnumWindow;
+            EnumWindows(ewp, 0);
+            return (IntPtr)wndArray[1];
+        }
+
+        private bool EnumWindow(int hWnd, int lParam)
+        {
+            if (!IsWindowVisible(hWnd))
+                return (true);
+
+
+
+            StringBuilder module = new(256);
+            GetWindowModuleFileName(hWnd, module, 256);
+            //string test = module.ToString();
+            wndArray.Add((IntPtr)hWnd);
+
+
+
+            return (true);
+        }
     }
 
 
 
-#if MY_BAD
+#if MY_OLD_BAD
     /// <summary>
     /// A class that manages a global low level keyboard hook
     /// </summary>
     class globalKeyboardHook
     {
-    #region Interop
+#region Interop
         internal class NativeMethods
         {
             [StructLayout(LayoutKind.Sequential)]
@@ -616,7 +721,7 @@ namespace ClipboardEx
             public delegate int HookProc(int code, int wParam, ref NativeMethods.KBDLLHOOKSTRUCT lParam);
 
         }
-        #endregion
+#endregion
 
 
         /// <summary>Occurs when one of the hooked keys is pressed</summary>
