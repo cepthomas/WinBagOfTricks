@@ -15,18 +15,36 @@ using System.Collections;
 
 namespace ClipboardEx
 {
+    using System;
+    using System.ComponentModel;
+    using System.Runtime.InteropServices;
+
+
     /// <summary>
     /// Handles all interactions at the Clipboard.XXX() API level.
+    /// Hooks keyboard to intercept magic paste key.
     /// </summary>
     public partial class ClipboardEx : Form
     {
         #region Fields
         /// <summary>Next in line for clipboard  notification.</summary>
-        IntPtr _nextCb = new(0);
+        IntPtr _nextCb = IntPtr.Zero;
 
         /// <summary>All handled clipboard messages.</summary>
         record MsgSpec(string Name, Func<Message, uint> Handler, string Description);
-        readonly Dictionary<int, MsgSpec> _messages;
+        readonly Dictionary<int, MsgSpec> _clipboardMessages;
+
+        /// <summary>Debug.</summary>
+        int _ticks = 0;
+
+        /// <summary></summary>
+        bool _busy = false; // TODO ??
+
+        /// <summary></summary>
+        bool _disposed;
+
+        /// <summary>Handle to the hook, need this to unhook and call the next hook</summary>
+        readonly IntPtr _hhook = IntPtr.Zero;
         #endregion
 
         #region Interop
@@ -49,11 +67,70 @@ namespace ClipboardEx
 
             [DllImport("user32.dll")]
             internal static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+            [DllImport("user32.dll")]
+            internal static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
+
+            [DllImport("user32.dll")]
+            internal static extern int CallNextHookEx(IntPtr idHook, int nCode, int wParam, ref KBDLLHOOKSTRUCT lParam);
+
+            [DllImport("user32.dll")]
+            internal static extern IntPtr SetWindowsHookEx(HookType hookType, HookProc lpfn, IntPtr hMod, uint dwThreadId);
+            //static extern IntPtr SetWindowsHookEx(HookType hookType, HookProc lpfn, IntPtr hMod, uint dwThreadId);
+
+            [DllImport("user32.dll")]
+            internal static extern bool UnhookWindowsHookEx(IntPtr hInstance);
+
+            [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+            internal static extern IntPtr GetModuleHandle(string lpModuleName);
         }
         #endregion
 
-        globalKeyboardHook _ghook;
+        #region Interop Definitions
+        [Flags]
+        public enum KBDLLHOOKSTRUCTFlags : uint
+        {
+            LLKHF_EXTENDED = 0x01,
+            LLKHF_INJECTED = 0x10,
+            LLKHF_ALTDOWN = 0x20,
+            LLKHF_UP = 0x80,
+        }
 
+        [StructLayout(LayoutKind.Sequential)]
+        public struct KBDLLHOOKSTRUCT
+        {
+            public uint vkCode;
+            public uint scanCode;
+            public KBDLLHOOKSTRUCTFlags flags;
+            public uint time;
+            public UIntPtr dwExtraInfo;
+        }
+
+        /// <summary> https://www.pinvoke.net/default.aspx/Enums/HookType.html </summary>
+        public enum HookType : int
+        {
+            WH_MSGFILTER = -1,
+            WH_JOURNALRECORD = 0,
+            WH_JOURNALPLAYBACK = 1,
+            WH_KEYBOARD = 2,
+            WH_GETMESSAGE = 3,
+            WH_CALLWNDPROC = 4,
+            WH_CBT = 5,
+            WH_SYSMSGFILTER = 6,
+            WH_MOUSE = 7,
+            WH_HARDWARE = 8,
+            WH_DEBUG = 9,
+            WH_SHELL = 10,
+            WH_FOREGROUNDIDLE = 11,
+            WH_CALLWNDPROCRET = 12,
+            WH_KEYBOARD_LL = 13,
+            WH_MOUSE_LL = 14
+        }
+
+        /// <summary>defines the callback type for the hook</summary>
+        public delegate int HookProc(int code, int wParam, ref KBDLLHOOKSTRUCT lParam);
+        //delegate IntPtr HookProc(int code, IntPtr wParam, IntPtr lParam);
+        #endregion
 
         #region Lifecycle
         /// <summary>
@@ -70,44 +147,72 @@ namespace ClipboardEx
 
             _nextCb = NativeMethods.SetClipboardViewer(Handle);
 
-            _messages = new()
+            _clipboardMessages = new()
             {
-                { 0x0308, new("WM_DRAWCLIPBOARD",    CbDraw,    "Sent to the first window in the clipboard viewer chain when the content of the clipboard changes.") },
-                { 0x030D, new("WM_CHANGECBCHAIN",    CbChange,  "Sent to the first window in the clipboard viewer chain when a window is being removed from the chain.") },
-                { 0x031D, new("WM_CLIPBOARDUPDATE",  CbDefault, "Sent when the contents of the clipboard have changed.") },
+                { 0x0308, new("WM_DRAWCLIPBOARD", CbDraw, "Sent to the first window in the clipboard viewer chain when the content of the clipboard changes.") },
+                { 0x030D, new("WM_CHANGECBCHAIN", CbChange, "Sent to the first window in the clipboard viewer chain when a window is being removed from the chain.") },
+                { 0x031D, new("WM_CLIPBOARDUPDATE", CbDefault, "Sent when the contents of the clipboard have changed.") },
                 { 0x0307, new("WM_DESTROYCLIPBOARD", CbDefault, "Sent to the clipboard owner when a call to the EmptyClipboard function empties the clipboard.") },
-                { 0x030C, new("WM_ASKCBFORMATNAME",  CbDefault, "Sent to the clipboard owner by a clipboard viewer window to request the name of a CF_OWNERDISPLAY clipboard format.") },
-                { 0x0303, new("WM_CLEAR",            CbDefault, "Clear") },
-                { 0x0301, new("WM_COPY",             CbDefault, "Copy") },
-                { 0x0300, new("WM_CUT",              CbDefault, "Cut") },
-                { 0x0302, new("WM_PASTE",            CbDefault, "Paste") }
+                { 0x030C, new("WM_ASKCBFORMATNAME", CbDefault, "Sent to the clipboard owner by a clipboard viewer window to request the name of a CF_OWNERDISPLAY clipboard format.") },
+                { 0x0303, new("WM_CLEAR", CbDefault, "Clear") },
+                { 0x0301, new("WM_COPY", CbDefault, "Copy") },
+                { 0x0300, new("WM_CUT", CbDefault, "Cut") },
+                { 0x0302, new("WM_PASTE", CbDefault, "Paste") }
             };
 
+            // Init LL kbbd hook.
+            using (Process process = Process.GetCurrentProcess())
+            using (ProcessModule? module = process.MainModule)
+            {
+                IntPtr hModule = NativeMethods.GetModuleHandle(module!.ModuleName!);
+                _hhook = NativeMethods.SetWindowsHookEx(HookType.WH_KEYBOARD_LL, KeyboardHookProc, hModule, 0);
+            }
 
-            //// initialize our delegate
-            //_myCallbackDelegate = new HookProc(MyCallbackFunction);
-
-            //// setup a keyboard hook
-            //_hhook = NativeMethods.SetWindowsHookEx(2 /*HookType.WH_KEYBOARD*/, _myCallbackDelegate, IntPtr.Zero, AppDomain.GetCurrentThreadId());
-
-            /////// the other way
-            _ghook = new();
+            // Paste test.
+            _ticks = 5;
+            timer1.Tick += (_, __) => { if (_ticks-- > 0) { Clipboard.SetText($"XXXXX{_ticks}"); TriggerPaste(); } };
+            timer1.Enabled = true;
         }
 
+        // 
         /// <summary>
-        /// Clean up.
+        /// Override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void ClipboardEx_FormClosing(object sender, FormClosingEventArgs e)
+        ~ClipboardEx()
         {
-            NativeMethods.ChangeClipboardChain(Handle, _nextCb);
-            //_ghook = null;
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    // dispose managed state (managed objects)
+                    components.Dispose();
+                }
+
+                // free unmanaged resources (unmanaged objects) and override finalizer
+                // set large fields to null
+                NativeMethods.ChangeClipboardChain(Handle, _nextCb);
+                NativeMethods.UnhookWindowsHookEx(_hhook);
+            }
+
+            _disposed = true;
+            base.Dispose(disposing);
         }
         #endregion
 
-
-
+        #region Message processing
         /// <summary>
         /// Handle window messages.
         /// </summary>
@@ -116,16 +221,14 @@ namespace ClipboardEx
         {
             uint ret = 0;
 
-            if (_messages is not null && _messages.ContainsKey(m.Msg))
+            if (_clipboardMessages is not null && _clipboardMessages.ContainsKey(m.Msg))
             {
-                //LogMessage("DBG", $"m.HWnd:{m.HWnd} me:{Handle}");
-
-                MsgSpec sp = _messages[m.Msg];
-                LogMessage("INF", $"message {sp.Name}");
-
+                MsgSpec sp = _clipboardMessages[m.Msg];
+                LogMessage("DBG", $"message {sp.Name} HWnd:{m.HWnd} Msg:{m.Msg} WParam:{m.WParam} LParam:{m.LParam} ");
+                // Call handler.
                 ret = sp.Handler(m);
 
-                if(ret > 0)
+                if (ret > 0)
                 {
                     LogMessage("ERR", $"handler {sp.Name} ret:0X{ret:X}");
                 }
@@ -153,7 +256,7 @@ namespace ClipboardEx
                 // Do something...
                 if (dobj is not null)
                 {
-                    // Info about the source window.
+                    // Info about the source window. TODO probably don't need.
                     IntPtr hwnd = NativeMethods.GetForegroundWindow();
                     ret = NativeMethods.GetWindowThreadProcessId(hwnd, out uint processID);
                     var procName = Process.GetProcessById((int)processID).ProcessName;
@@ -244,6 +347,157 @@ namespace ClipboardEx
             base.WndProc(ref m);
             return ret;
         }
+        #endregion
+
+        /// <summary>
+        /// Send paste to focus window.
+        /// </summary>
+        public void TriggerPaste()
+        {
+            //Use GetWindowThreadProcessId to get the process ID, then Process.GetProcessById to retrieve the process information.
+            //The resultant System.Diagnostics.Process Object's MainModule Property has the Filename Property, which is the
+            //Information you are probably searching.
+            IntPtr hwnd = NativeMethods.GetForegroundWindow();
+            NativeMethods.GetWindowThreadProcessId(hwnd, out uint lpdwProcessId);
+            var p = Process.GetProcessById((int)lpdwProcessId);
+            Debug.WriteLine($"FileName:{p.MainModule!.FileName!}");
+
+            // This does work.
+            //for input use the virtual keycodes from https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+            byte vkey = 0x56; // 'v'
+            byte ctrl = 0x11;
+            int KEYEVENTF_KEYUP = 0x0002;
+            NativeMethods.keybd_event(ctrl, 0, 0, 0);
+            NativeMethods.keybd_event(vkey, 0, 0, 0);
+            NativeMethods.keybd_event(ctrl, 0, KEYEVENTF_KEYUP, 0);
+            NativeMethods.keybd_event(vkey, 0, KEYEVENTF_KEYUP, 0);
+
+
+            // TODO This doesn't work:
+            //NativeMethods.SendMessage(hwnd, 0x0302, IntPtr.Zero, IntPtr.Zero); // NativeMethods.WM_PASTE
+        }
+
+        public int KeyboardHookProc(int code, int wParam, ref KBDLLHOOKSTRUCT lParam)
+        {
+            const int WM_KEYDOWN = 0x100;
+            const int WM_KEYUP = 0x101;
+            const int WM_SYSKEYDOWN = 0x104;
+            const int WM_SYSKEYUP = 0x105;
+
+            if (code >= 0)
+            {
+                Keys key = (Keys)lParam.vkCode;
+
+                Debug.WriteLine($"globalKeyboardHook code:{code} wParam:{wParam} key:{key} scancode:{lParam.scanCode}");
+
+                ////////////////////////// TODO this //////////////////////////////////////
+                //if (_hookedKeys.Contains(key))
+                //{
+                //    KeyEventArgs kea = new(key);
+                //    if ((wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) && (KeyDown != null))
+                //    {
+                //        KeyDown(this, kea);
+                //    }
+                //    else if ((wParam == WM_KEYUP || wParam == WM_SYSKEYUP) && (KeyUp != null))
+                //    {
+                //        KeyUp(this, kea);
+                //    }
+
+                //    if (kea.Handled)
+                //    {
+                //        ret = 1;
+                //    }
+                //}
+
+                ////////////////////////// TODO or that //////////////////////////////////////
+                bool ctrl_pressed = false;
+                bool v_pressed = false;
+                bool shft_pressed = false;
+                bool sth_else = false;
+
+                if (_busy)
+                {
+                    return 0;
+                }
+
+                _busy = true;
+
+                if (code >= 0)
+                {
+                    if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
+                    {
+                        switch ((Keys)lParam.vkCode)
+                        {
+                            case Keys.LControlKey:
+                            case Keys.RControlKey:
+                                ctrl_pressed = true;
+                                break;
+
+                            case Keys.LShiftKey:
+                            case Keys.RShiftKey:
+                                shft_pressed = true;
+                                break;
+
+                            case Keys.V:
+                                v_pressed = true;
+                                break;
+
+                            default:
+                                sth_else = true;
+                                break;
+                        }
+                    }
+
+                    if (wParam == WM_KEYUP || wParam == WM_SYSKEYDOWN)
+                    {
+                        switch ((Keys)lParam.vkCode)
+                        {
+                            case Keys.LControlKey:
+                            case Keys.RControlKey:
+                                ctrl_pressed = false;
+                                break;
+
+                            case Keys.LShiftKey:
+                            case Keys.RShiftKey:
+                                shft_pressed = false;
+                                break;
+
+                            case Keys.V:
+                                v_pressed = false;
+                                break;
+
+                            default:
+                                sth_else = true;
+                                break;
+                        }
+                    }
+
+                    if (sth_else)
+                    {
+                        ctrl_pressed = false;
+                        v_pressed = false;
+                        shft_pressed = false;
+                        sth_else = false;
+                    }
+
+                    if (ctrl_pressed && v_pressed && shft_pressed)
+                    {
+                        ctrl_pressed = false;
+                        v_pressed = false;
+                        shft_pressed = false;
+
+                        //ShowWindow();
+                        _busy = false;
+                        return 0;
+                    }
+
+                    _busy = false;
+                }
+
+            }
+            return NativeMethods.CallNextHookEx(_hhook, code, wParam, ref lParam);
+        }
+
 
         /// <summary>
         /// 
@@ -252,16 +506,13 @@ namespace ClipboardEx
         /// <param name="e"></param>
         private void Paste_Click(object sender, EventArgs e)
         {
-            Clipboard.SetText("A paste experiment");
-
-
-            ClientStuff cl = new();
-            cl.ForwardDataToClipboard();
-
+            Clipboard.SetText("Paste_Click says hello");
 
             //void SetFileDropList(StringCollection filePaths);
             //void SetImage(Image image);
             //void SetText(string text);
+
+            TriggerPaste();
         }
 
         /// <summary>
@@ -277,531 +528,4 @@ namespace ClipboardEx
             rtbInfo.AppendText(s);
         }
     }
-
-
-    ////////////////////////// LL keyboard hook //////////////////////////////////////
-
-    /// <summary>
-    /// A class that manages a global low level keyboard hook
-    /// </summary>
-    class globalKeyboardHook
-    {
-        /// <summary>The collections of keys to watch for</summary>
-        List<Keys> _hookedKeys = new();
-
-        /// <summary>defines the callback type for the hook</summary>
-        public delegate int keyboardHookProc(int code, int wParam, ref KBDLLHOOKSTRUCT lParam);
-        //delegate IntPtr HookProc(int code, IntPtr wParam, IntPtr lParam);
-
-        /// <summary>Occurs when one of the hooked keys is pressed</summary>
-        public event KeyEventHandler KeyDown;
-
-        /// <summary>Occurs when one of the hooked keys is released</summary>
-        public event KeyEventHandler KeyUp;
-
-
-        keyboardHookProc _hookProc;
-
-        /// <summary>Handle to the hook, need this to unhook and call the next hook</summary>
-        IntPtr _hhook = IntPtr.Zero;
-
-        #region Interop
-        [DllImport("user32.dll")]
-        static extern int CallNextHookEx(IntPtr idHook, int nCode, int wParam, ref KBDLLHOOKSTRUCT lParam);
-
-        [DllImport("kernel32.dll")]
-        static extern IntPtr LoadLibrary(string lpFileName);
-
-        [DllImport("user32.dll")]
-        static extern IntPtr SetWindowsHookEx(HookType hookType, keyboardHookProc lpfn, IntPtr hMod, uint dwThreadId);
-        //static extern IntPtr SetWindowsHookEx(HookType hookType, HookProc lpfn, IntPtr hMod, uint dwThreadId);
-
-        [DllImport("user32.dll")]
-        static extern bool UnhookWindowsHookEx(IntPtr hInstance);
-
-        [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
-        static extern IntPtr GetModuleHandle(string lpModuleName);
-        //static extern IntPtr GetModuleHandle([MarshalAs(UnmanagedType.LPWStr)] in string lpModuleName);
-
-        [Flags]
-        public enum KBDLLHOOKSTRUCTFlags : uint
-        {
-            LLKHF_EXTENDED = 0x01,
-            LLKHF_INJECTED = 0x10,
-            LLKHF_ALTDOWN = 0x20,
-            LLKHF_UP = 0x80,
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct KBDLLHOOKSTRUCT
-        {
-            public uint vkCode;
-            public uint scanCode;
-            public KBDLLHOOKSTRUCTFlags flags;
-            public uint time;
-            public UIntPtr dwExtraInfo;
-        }
-
-        /// <summary> https://www.pinvoke.net/default.aspx/Enums/HookType.html </summary>
-        public enum HookType : int
-        {
-            WH_MSGFILTER = -1,
-            WH_JOURNALRECORD = 0,
-            WH_JOURNALPLAYBACK = 1,
-            WH_KEYBOARD = 2,
-            WH_GETMESSAGE = 3,
-            WH_CALLWNDPROC = 4,
-            WH_CBT = 5,
-            WH_SYSMSGFILTER = 6,
-            WH_MOUSE = 7,
-            WH_HARDWARE = 8,
-            WH_DEBUG = 9,
-            WH_SHELL = 10,
-            WH_FOREGROUNDIDLE = 11,
-            WH_CALLWNDPROCRET = 12,
-            WH_KEYBOARD_LL = 13,
-            WH_MOUSE_LL = 14
-        }
-
-        //const int WH_KEYBOARD_LL = 13;
-        const int WM_KEYDOWN = 0x100;
-        const int WM_KEYUP = 0x101;
-        const int WM_SYSKEYDOWN = 0x104;
-        const int WM_SYSKEYUP = 0x105;
-        #endregion
-
-
-        bool busy = false;
-
-        public int HP(int code, int wParam, ref KBDLLHOOKSTRUCT lParam)
-        {
-            if (code >= 0)
-            {
-                Keys key = (Keys)lParam.vkCode;
-
-                Debug.WriteLine($"globalKeyboardHook_o code:{code} wParam:{wParam} key:{key} scancode:{lParam.scanCode}");
-
-                if (_hookedKeys.Contains(key))
-                {
-                    KeyEventArgs kea = new(key);
-                    if ((wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) && (KeyDown != null))
-                    {
-                        KeyDown(this, kea);
-                    }
-                    else if ((wParam == WM_KEYUP || wParam == WM_SYSKEYUP) && (KeyUp != null))
-                    {
-                        KeyUp(this, kea);
-                    }
-
-                    if (kea.Handled)
-                    {
-                        return 1;
-                    }
-
-
-                    ////////////////////////////////////////////////////////////////
-#if STUFF
-                    bool ctrl_pressed = false;
-                    bool v_pressed = false;
-                    bool shft_pressed = false;
-                    bool sth_else = false;
-                    const Keys MY_LCTRL = Keys.LControlKey;
-                    const Keys MY_RCTRL = Keys.RControlKey;
-                    const Keys MY_LSHIFT = Keys.LShiftKey;
-                    const Keys MY_RSHIFT = Keys.RShiftKey;
-                    const Keys MY_V = Keys.V;
-
-                    if (busy)
-                        return 0;
-                    else
-                        busy = true;
-
-                    if (code >= 0)
-                    {
-                        Keys key2 = (Keys)lParam.vkCode;
-
-                        if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
-                        {
-                            switch (key2)
-                            {
-                                case MY_LCTRL:
-                                case MY_RCTRL:
-                                    ctrl_pressed = true;
-                                    break;
-                                case MY_LSHIFT:
-                                case MY_RSHIFT:
-                                    shft_pressed = true;
-                                    break;
-                                case MY_V:
-                                    v_pressed = true;
-                                    break;
-                                default:
-                                    sth_else = true;
-                                    break;
-                            }
-                        }
-                        if (wParam == WM_KEYUP || wParam == WM_SYSKEYDOWN)
-                        {
-                            switch (key2)
-                            {
-                                case MY_LCTRL:
-                                case MY_RCTRL:
-                                    if (ctrl_pressed)
-                                        ctrl_pressed = false;
-                                    break;
-                                case MY_LSHIFT:
-                                case MY_RSHIFT:
-                                    if (shft_pressed)
-                                        shft_pressed = false;
-                                    break;
-                                case MY_V:
-                                    if (v_pressed)
-                                        v_pressed = false;
-                                    break;
-                                default:
-                                    sth_else = true;
-                                    break;
-                            }
-                        }
-                        if (sth_else)
-                        {
-                            ctrl_pressed = false;
-                            v_pressed = false;
-                            shft_pressed = false;
-                            sth_else = false;
-                        }
-
-                        if (ctrl_pressed && v_pressed && shft_pressed)
-                        {
-                            ctrl_pressed = false;
-                            v_pressed = false;
-                            shft_pressed = false;
-
-                            //ShowWindow();
-                            busy = false;
-                            return 0;
-                        }
-                    }
-#endif
-
-                    busy = false;
-
-
-                }
-            }
-            return CallNextHookEx(_hhook, code, wParam, ref lParam);
-        }
-
-
-        /// <summary>Initializes a new instance of the class and installs the keyboard hook.</summary>
-        public globalKeyboardHook()
-        {
-            _hookProc = HP;
-            IntPtr hInstance = GetModuleHandle("User32.dll");
-            _hhook = SetWindowsHookEx(HookType.WH_KEYBOARD_LL, _hookProc, hInstance, 0);
-
-
-            //_hookProc = delegate (int code, int wParam, ref KBDLLHOOKSTRUCT lParam)
-            //{
-            //    if (code >= 0)
-            //    {
-            //        Keys key = (Keys)lParam.vkCode;
-
-            //        Debug.WriteLine($"globalKeyboardHook_o code:{code} wParam:{wParam} key:{key} scancode:{lParam.scanCode}");
-
-            //        if (_hookedKeys.Contains(key))
-            //        {
-            //            KeyEventArgs kea = new(key);
-            //            if ((wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) && (KeyDown != null))
-            //            {
-            //                KeyDown(this, kea);
-            //            }
-            //            else if ((wParam == WM_KEYUP || wParam == WM_SYSKEYUP) && (KeyUp != null))
-            //            {
-            //                KeyUp(this, kea);
-            //            }
-            //            if (kea.Handled)
-            //                return 1;
-            //        }
-            //    }
-            //    return CallNextHookEx(_hhook, code, wParam, ref lParam);
-            //};
-
-            //hook();
-            //IntPtr hInstance = LoadLibrary("User32");
-            //_hhook = SetWindowsHookEx(HookType.WH_KEYBOARD_LL, _hookProc, hInstance, 0);
-        }
-
-
-
-
-
-
-        /// <summary>Releases unmanaged resources. TODO</summary>
-        ~globalKeyboardHook()
-        {
-            //unhook();
-            UnhookWindowsHookEx(_hhook);
-        }
-    }
-
-
-    ////////////////////////// Other client stuff //////////////////////////////////////
-
-
-    public class ClientStuff //: Form
-    {
-        [DllImport("user32.dll")]
-        internal static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
-
-        [DllImport("user32", EntryPoint = "VkKeyScan")]
-        internal static extern short VkKeyScan(byte cChar_Renamed);
-
-        [DllImport("user32.dll")]
-        internal static extern bool SetForegroundWindow(int hWnd);
-
-        [DllImport("user32.dll")]
-        internal static extern int SetFocus(int hWnd);
-
-        [DllImport("user32.dll")]
-        internal static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
-
-
-        public const int WM_PASTE = 0x0302;
-
-        public const byte VK_CONTROL = 0x11;
-        public const int KEYEVENTF_KEYUP = 0x0002;
-
-        public const int WM_KEYDOWN = 0x0100;
-        public const int WM_KEYUP = 0x0101;
-
-
-
-
-
-
-        public void ForwardDataToClipboard()
-        {
-            // This before called -->
-            // //put the chosen item as last added - so it would be on top of the list
-            // cl.list.Remove(text);
-            // cl.list.Add(text);
-            // cl.prevclipboardcontents = text;
-            // ClipboardListener.SetClipboardText(text);
-            // frm.ForwardDataToClipboard();
-
-
-            //// was:
-            //GetOneDownWindow wnd = new GetOneDownWindow();
-            //int outsideApphwnd = (int)wnd.GetThatWindow(); //wnd.wndArray[1];
-            //SetForegroundWindow(outsideApphwnd);
-            //SetFocus(outsideApphwnd);
-            //keybd_event(VK_CONTROL, 0, 0, 0);
-            //keybd_event((byte)VkKeyScan((byte)'v'), 0, 0, 0);
-            //keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
-            //keybd_event((byte)VkKeyScan((byte)'v'), 0, KEYEVENTF_KEYUP, 0);
-
-
-            // new:
-            //Use GetWindowThreadProcessId to get the process ID, then Process.GetProcessById to retrieve the process information.
-            //The resultant System.Diagnostics.Process Object's MainModule Property has the Filename Property, which is the
-            //Information you are probably searching.
-            IntPtr hwnd = GetForegroundWindow();
-            uint ret = GetWindowThreadProcessId(hwnd, out uint lpdwProcessId);
-            var p = Process.GetProcessById((int)lpdwProcessId);
-
-            Debug.WriteLine($"FileName:{p.MainModule.FileName}");
-
-            //globalKeyboardHook_o code:0 wParam: 256 key: LControlKey scancode:0
-            //globalKeyboardHook_o code:0 wParam: 256 key: V scancode:0
-            //globalKeyboardHook_o code:0 wParam: 257 key: LControlKey scancode:0
-            //globalKeyboardHook_o code:0 wParam: 257 key: V scancode:0
-
-            keybd_event(VK_CONTROL, 0, 0, 0);
-            keybd_event((byte)VkKeyScan((byte)'v'), 0, 0, 0);
-            keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
-            keybd_event((byte)VkKeyScan((byte)'v'), 0, KEYEVENTF_KEYUP, 0);
-        }
-    }
-
-    public class GetOneDownWindow
-    {
-        [DllImport("user32.dll")]
-        private static extern int EnumWindows(EnumWindowsProc ewp, int lParam);
-
-        // [DllImport("user32.dll")]
-        // private static extern int GetWindowText(int hWnd, StringBuilder title, int size);
-
-        [DllImport("user32.dll")]
-        private static extern int GetWindowModuleFileName(int hWnd, StringBuilder title, int size);
-
-        [DllImport("user32.dll")]
-        private static extern bool IsWindowVisible(int hWnd);
-
-        [DllImport("user32.dll")]
-        internal static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-
-        public delegate bool EnumWindowsProc(int hWnd, int lParam);
-
-        public ArrayList wndArray = new(); //array of windows
-
-        public IntPtr GetThatWindow()
-        {
-            EnumWindowsProc ewp = EnumWindow;
-            EnumWindows(ewp, 0);
-            return (IntPtr)wndArray[1];
-        }
-
-        private bool EnumWindow(int hWnd, int lParam)
-        {
-            if (!IsWindowVisible(hWnd))
-                return (true);
-
-
-
-            StringBuilder module = new(256);
-            GetWindowModuleFileName(hWnd, module, 256);
-            //string test = module.ToString();
-            wndArray.Add((IntPtr)hWnd);
-
-
-
-            return (true);
-        }
-    }
-
-
-
-#if MY_OLD_BAD
-    /// <summary>
-    /// A class that manages a global low level keyboard hook
-    /// </summary>
-    class globalKeyboardHook
-    {
-#region Interop
-        internal class NativeMethods
-        {
-            [StructLayout(LayoutKind.Sequential)]
-            public class KBDLLHOOKSTRUCT
-            {
-                public uint vkCode;
-                public uint scanCode;
-                public KBDLLHOOKSTRUCTFlags flags;
-                public uint time;
-                public UIntPtr dwExtraInfo;
-            }
-
-            [Flags]
-            public enum KBDLLHOOKSTRUCTFlags : uint
-            {
-                LLKHF_EXTENDED = 0x01,
-                LLKHF_INJECTED = 0x10,
-                LLKHF_ALTDOWN = 0x20,
-                LLKHF_UP = 0x80,
-            }
-
-            [DllImport("user32.dll")]
-            static internal extern int CallNextHookEx(IntPtr idHook, int nCode, int wParam, ref KBDLLHOOKSTRUCT lParam);
-
-            [DllImport("kernel32.dll")]
-            static internal extern IntPtr LoadLibrary(string lpFileName);
-
-            [DllImport("user32.dll")]
-            static internal extern IntPtr SetWindowsHookEx(int idHook, HookProc callback, IntPtr hInstance, uint threadId);
-
-            [DllImport("user32.dll")]
-            static internal extern bool UnhookWindowsHookEx(IntPtr hInstance);
-
-            /// <summary>defines the callback type for the hook</summary>
-            public delegate int HookProc(int code, int wParam, ref NativeMethods.KBDLLHOOKSTRUCT lParam);
-
-        }
-#endregion
-
-
-        /// <summary>Occurs when one of the hooked keys is pressed</summary>
-        public event KeyEventHandler KeyDown;
-
-        /// <summary>Occurs when one of the hooked keys is released</summary>
-        public event KeyEventHandler KeyUp;
-
-
-        /// <summary>The collections of keys to watch for</summary>
-        List<Keys> _hookedKeys = new();
-        NativeMethods.HookProc _hookProc;
-
-        const int WH_KEYBOARD_LL = 13;
-        const int WM_KEYDOWN = 0x100;
-        const int WM_KEYUP = 0x101;
-        const int WM_SYSKEYDOWN = 0x104;
-        const int WM_SYSKEYUP = 0x105;
-
-        /// <summary>Handle to the hook, need this to unhook and call the next hook</summary>
-        IntPtr _hhook = IntPtr.Zero;
-
-
-        /// <summary>Initializes a new instance of the class and installs the keyboard hook.</summary>
-        public globalKeyboardHook()
-        {
-            _hookProc = delegate (int code, int wParam, ref NativeMethods.KBDLLHOOKSTRUCT lParam)
-            {
-                Debug.WriteLine($"globalKeyboardHook entry");
-
-                if (code >= 0)
-                {
-                    Keys key = (Keys)lParam.vkCode;
-
-                    Debug.WriteLine($"globalKeyboardHook code:{code} wParam:{wParam} key:{key} scancode:{lParam.scanCode}");
-
-                    if (_hookedKeys.Contains(key))
-                    {
-                        KeyEventArgs kea = new(key);
-                        if ((wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) && (KeyDown != null))
-                        {
-                            KeyDown(this, kea);
-                        }
-                        else if ((wParam == WM_KEYUP || wParam == WM_SYSKEYUP) && (KeyUp != null))
-                        {
-                            KeyUp(this, kea);
-                        }
-
-                        if (kea.Handled)
-                        {
-                            return 1;
-                        }
-                    }
-                }
-
-                return NativeMethods.CallNextHookEx(_hhook, code, wParam, ref lParam);
-            };
-
-            //hook(); TODO why this?
-            IntPtr hInstance = NativeMethods.LoadLibrary("User32");
-            _hhook = NativeMethods.SetWindowsHookEx(WH_KEYBOARD_LL, _hookProc, hInstance, 0); // 2 blows up real bad
-        }
-
-        /// <summary>Releases unmanaged resources.</summary>
-        ~globalKeyboardHook()
-        {
-            //unhook();
-            NativeMethods.UnhookWindowsHookEx(_hhook);
-        }
-
-
-        ///// <summary>defines the callback type for the hook</summary>
-        //public delegate int keyboardHookProc(int code, int wParam, ref keyboardHookStruct lParam);
-
-        ///// <summary>Occurs when one of the hooked keys is pressed</summary>
-        //public event KeyEventHandler KeyDown;
-
-        ///// <summary>Occurs when one of the hooked keys is released</summary>
-        //public event KeyEventHandler KeyUp;
-    }
-#endif
-
 }

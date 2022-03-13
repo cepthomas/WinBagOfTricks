@@ -85,10 +85,7 @@ namespace WinBagOfTricks
             else
             {
                 // Doesn't exist, create a new one.
-                us = new UserSettings
-                {
-                    _fn = fn
-                };
+                us = new UserSettings { _fn = fn };
             }
 
             return us;

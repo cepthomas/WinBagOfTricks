@@ -8,18 +8,18 @@ namespace ClipboardEx
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+        ///// <summary>
+        ///// Clean up any resources being used.
+        ///// </summary>
+        ///// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        //protected override void Dispose(bool disposing)
+        //{
+        //    if (disposing && (components != null))
+        //    {
+        //        components.Dispose();
+        //    }
+        //    base.Dispose(disposing);
+        //}
 
         #region Windows Form Designer generated code
 
@@ -29,10 +29,12 @@ namespace ClipboardEx
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.rtbInfo = new System.Windows.Forms.RichTextBox();
             this.rtbText = new System.Windows.Forms.RichTextBox();
             this.btnPaste = new System.Windows.Forms.Button();
             this.btnClear = new System.Windows.Forms.Button();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // rtbInfo
@@ -72,6 +74,10 @@ namespace ClipboardEx
             this.btnClear.Text = "Clear";
             this.btnClear.UseVisualStyleBackColor = true;
             // 
+            // timer1
+            // 
+            this.timer1.Interval = 1000;
+            // 
             // ClipboardEx
             // 
             this.ClientSize = new System.Drawing.Size(1081, 490);
@@ -81,7 +87,6 @@ namespace ClipboardEx
             this.Controls.Add(this.rtbInfo);
             this.Name = "ClipboardEx";
             this.Text = "Hoo Haa";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ClipboardEx_FormClosing);
             this.ResumeLayout(false);
 
         }
@@ -91,5 +96,6 @@ namespace ClipboardEx
         private System.Windows.Forms.RichTextBox rtbText;
         private System.Windows.Forms.Button btnPaste;
         private System.Windows.Forms.Button btnClear;
+        private System.Windows.Forms.Timer timer1;
     }
 }
