@@ -10,19 +10,18 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using System.Drawing.Design;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 using NBagOfTricks;
-using System.Collections;
+using NBagOfUis;
+
 
 namespace ClipboardEx
 {
-    using System;
-    using System.ComponentModel;
-    using System.Runtime.InteropServices;
-
-
     /// <summary>
-    /// Handles all interactions at the Clipboard.XXX() API level.
-    /// Hooks keyboard to intercept magic paste key.
+    /// - Handles all interactions at the Clipboard.XXX() API level.
+    /// - Hooks keyboard to intercept magic paste key.
     /// </summary>
     public partial class ClipboardEx : Form
     {
@@ -30,24 +29,55 @@ namespace ClipboardEx
         /// <summary>Next in line for clipboard  notification.</summary>
         IntPtr _nextCb = IntPtr.Zero;
 
-        /// <summary>All handled clipboard messages.</summary>
+        /// <summary>All handled clipboard API messages.</summary>
         record MsgSpec(string Name, Func<Message, uint> Handler, string Description);
         readonly Dictionary<int, MsgSpec> _clipboardMessages;
+
+        /// <summary>Handle to the LL hook. Needed to unhook and call the next hook in the chain.</summary>
+        readonly IntPtr _hhook = IntPtr.Zero;
+
+        /// <summary>The magic key to paste. TODO Make configurable.</summary>
+        readonly Keys _keyTrigger = Keys.Control | Keys.Shift | Keys.V;
+
+        /// <summary>Current state.</summary>
+        bool _controlPressed = false;
+
+        /// <summary>Current state.</summary>
+        bool _shiftPressed = false;
+
+        /// <summary>Current state.</summary>
+        bool _altPressed = false;
+
+        /// <summary>Manage resources.</summary>
+        bool _disposed;
+
+        /// <summary>Debug.</summary>
+        readonly Color _pressedColor = Color.LimeGreen;
 
         /// <summary>Debug.</summary>
         int _ticks = 0;
 
         /// <summary></summary>
-        bool _busy = false; // TODO ??
-
-        /// <summary></summary>
-        bool _disposed;
-
-        /// <summary>Handle to the hook, need this to unhook and call the next hook</summary>
-        readonly IntPtr _hhook = IntPtr.Zero;
+        bool _busy = false;
         #endregion
 
-        #region Interop
+        #region Constants
+        const int WM_KEYDOWN = 0x100;
+        //const int WM_KEYUP = 0x101;
+        const int WM_SYSKEYDOWN = 0x104; // when the user presses the F10 key (menu bar) or holds down the ALT key and then presses another key
+        //const int WM_SYSKEYUP = 0x105; // when the user releases a key that was pressed while the ALT key was held down
+        const int WM_DRAWCLIPBOARD = 0x0308;
+        const int WM_CHANGECBCHAIN = 0x030D;
+        const int WM_CLIPBOARDUPDATE = 0x031D;
+        const int WM_DESTROYCLIPBOARD = 0x0307;
+        const int WM_ASKCBFORMATNAME = 0x030C;
+        const int WM_CLEAR = 0x0303;
+        const int WM_COPY = 0x0301;
+        const int WM_CUT = 0x0300;
+        const int WM_PASTE = 0x0302;
+        #endregion
+
+        #region Interop Methods
         internal class NativeMethods
         {
             [DllImport("User32.dll")]
@@ -99,36 +129,23 @@ namespace ClipboardEx
         [StructLayout(LayoutKind.Sequential)]
         public struct KBDLLHOOKSTRUCT
         {
-            public uint vkCode;
-            public uint scanCode;
+            public uint vkCode;    // A virtual-key code in the range 1 to 254.
+            public uint scanCode;  // A hardware scan code for the key.
             public KBDLLHOOKSTRUCTFlags flags;
             public uint time;
             public UIntPtr dwExtraInfo;
         }
 
         /// <summary> https://www.pinvoke.net/default.aspx/Enums/HookType.html </summary>
+        // Global hooks are not supported in the.NET Framework except for WH_KEYBOARD_LL and WH_MOUSE_LL.
         public enum HookType : int
         {
-            WH_MSGFILTER = -1,
-            WH_JOURNALRECORD = 0,
-            WH_JOURNALPLAYBACK = 1,
-            WH_KEYBOARD = 2,
-            WH_GETMESSAGE = 3,
-            WH_CALLWNDPROC = 4,
-            WH_CBT = 5,
-            WH_SYSMSGFILTER = 6,
-            WH_MOUSE = 7,
-            WH_HARDWARE = 8,
-            WH_DEBUG = 9,
-            WH_SHELL = 10,
-            WH_FOREGROUNDIDLE = 11,
-            WH_CALLWNDPROCRET = 12,
             WH_KEYBOARD_LL = 13,
             WH_MOUSE_LL = 14
         }
 
-        /// <summary>defines the callback type for the hook</summary>
-        public delegate int HookProc(int code, int wParam, ref KBDLLHOOKSTRUCT lParam);
+        /// <summaryDefines the callback for the hook. Apparently you can have multiple typed overloads.</summary>
+        internal delegate int HookProc(int code, int wParam, ref KBDLLHOOKSTRUCT lParam);
         //delegate IntPtr HookProc(int code, IntPtr wParam, IntPtr lParam);
         #endregion
 
@@ -142,67 +159,82 @@ namespace ClipboardEx
 
             InitializeComponent();
 
+            // Init some controls.
             rtbText.Text = "Just something to copy";
             btnClear.Click += (_, __) => rtbInfo.Clear();
+            lblLetter.Text = (_keyTrigger & Keys.KeyCode).ToString();
 
             _nextCb = NativeMethods.SetClipboardViewer(Handle);
 
+            // HL messages of interest.
             _clipboardMessages = new()
             {
-                { 0x0308, new("WM_DRAWCLIPBOARD", CbDraw, "Sent to the first window in the clipboard viewer chain when the content of the clipboard changes.") },
-                { 0x030D, new("WM_CHANGECBCHAIN", CbChange, "Sent to the first window in the clipboard viewer chain when a window is being removed from the chain.") },
-                { 0x031D, new("WM_CLIPBOARDUPDATE", CbDefault, "Sent when the contents of the clipboard have changed.") },
-                { 0x0307, new("WM_DESTROYCLIPBOARD", CbDefault, "Sent to the clipboard owner when a call to the EmptyClipboard function empties the clipboard.") },
-                { 0x030C, new("WM_ASKCBFORMATNAME", CbDefault, "Sent to the clipboard owner by a clipboard viewer window to request the name of a CF_OWNERDISPLAY clipboard format.") },
-                { 0x0303, new("WM_CLEAR", CbDefault, "Clear") },
-                { 0x0301, new("WM_COPY", CbDefault, "Copy") },
-                { 0x0300, new("WM_CUT", CbDefault, "Cut") },
-                { 0x0302, new("WM_PASTE", CbDefault, "Paste") }
+                { WM_DRAWCLIPBOARD, new("WM_DRAWCLIPBOARD", CbDraw, "Sent to the first window in the clipboard viewer chain when the content of the clipboard changes.") },
+                { WM_CHANGECBCHAIN, new("WM_CHANGECBCHAIN", CbChange, "Sent to the first window in the clipboard viewer chain when a window is being removed from the chain.") },
+                { WM_CLIPBOARDUPDATE, new("WM_CLIPBOARDUPDATE", CbDefault, "Sent when the contents of the clipboard have changed.") },
+                { WM_DESTROYCLIPBOARD, new("WM_DESTROYCLIPBOARD", CbDefault, "Sent to the clipboard owner when a call to the EmptyClipboard function empties the clipboard.") },
+                { WM_ASKCBFORMATNAME, new("WM_ASKCBFORMATNAME", CbDefault, "Sent to the clipboard owner by a clipboard viewer window to request the name of a CF_OWNERDISPLAY clipboard format.") },
+                { WM_CLEAR, new("WM_CLEAR", CbDefault, "Clear") },
+                { WM_COPY, new("WM_COPY", CbDefault, "Copy") },
+                { WM_CUT, new("WM_CUT", CbDefault, "Cut") },
+                { WM_PASTE, new("WM_PASTE", CbDefault, "Paste") }
             };
 
-            // Init LL kbbd hook.
+            // Init LL keyboard hook.
             using (Process process = Process.GetCurrentProcess())
             using (ProcessModule? module = process.MainModule)
             {
+                // hMod: Handle to the DLL containing the hook procedure pointed to by the lpfn parameter. The hMod parameter must be set
+                //   to NULL if the dwThreadId parameter specifies a thread created by the current process and if the hook procedure is
+                //   within the code associated with the current process.
+                // dwThreadId: Specifies the identifier of the thread with which the hook procedure is to be associated.If this parameter is
+                //   zero, the hook procedure is associated with all existing threads running in the same desktop as the calling thread.
                 IntPtr hModule = NativeMethods.GetModuleHandle(module!.ModuleName!);
                 _hhook = NativeMethods.SetWindowsHookEx(HookType.WH_KEYBOARD_LL, KeyboardHookProc, hModule, 0);
             }
 
             // Paste test.
             _ticks = 5;
-            timer1.Tick += (_, __) => { if (_ticks-- > 0) { Clipboard.SetText($"XXXXX{_ticks}"); TriggerPaste(); } };
+            timer1.Tick += (_, __) => { if (_ticks-- > 0) { Clipboard.SetText($"XXXXX{_ticks}{Environment.NewLine}"); TriggerPaste(); } };
             timer1.Enabled = true;
         }
 
-        // 
         /// <summary>
         /// Override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources.
         /// </summary>
         ~ClipboardEx()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method.
             Dispose(false);
         }
 
-        public void Dispose()
+        /// <summary>
+        /// Boilerplate.
+        /// </summary>
+        public new void Dispose() // TODO why do I need new()?
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method.
             Dispose(true);
             GC.SuppressFinalize(this);
+
+            base.Dispose();
         }
 
+        /// <summary>
+        /// Boilerplate.
+        /// </summary>
         protected override void Dispose(bool disposing)
         {
             if (!_disposed)
             {
                 if (disposing)
                 {
-                    // dispose managed state (managed objects)
+                    // Dispose managed state (managed objects).
                     components.Dispose();
                 }
 
-                // free unmanaged resources (unmanaged objects) and override finalizer
-                // set large fields to null
+                // Free unmanaged resources (unmanaged objects) and override finalizer.
+                // Set large fields to null.
                 NativeMethods.ChangeClipboardChain(Handle, _nextCb);
                 NativeMethods.UnhookWindowsHookEx(_hhook);
             }
@@ -212,7 +244,7 @@ namespace ClipboardEx
         }
         #endregion
 
-        #region Message processing
+        #region Windows Message Processing
         /// <summary>
         /// Handle window messages.
         /// </summary>
@@ -256,44 +288,49 @@ namespace ClipboardEx
                 // Do something...
                 if (dobj is not null)
                 {
-                    // Info about the source window. TODO probably don't need.
+                    // Info about the source window.
                     IntPtr hwnd = NativeMethods.GetForegroundWindow();
                     ret = NativeMethods.GetWindowThreadProcessId(hwnd, out uint processID);
                     var procName = Process.GetProcessById((int)processID).ProcessName;
                     var appPath = Process.GetProcessById((int)processID).MainModule!.FileName;
                     var appName = Path.GetFileName(appPath);
                     StringBuilder title = new(100);
-                    NativeMethods.GetWindowText(hwnd, title, 100);
-                    LogMessage("INF", $"COPY appName:{appName} procName:{procName} title:{title}");
-
-                    // Data type info.
-                    //var dtypes = dobj.GetFormats();
-                    //LogMessage("INF", $"dtypes:{string.Join(",", dtypes)}");
-
-                    if (Clipboard.ContainsText())
+                    int hres = NativeMethods.GetWindowText(hwnd, title, 100);
+                    if(hres == 0)
                     {
-                        var t = Clipboard.GetText();
-                        LogMessage("INF", $"TEXT {t.Left(50)}");
-                    }
-                    else if (Clipboard.ContainsFileDropList())
-                    {
-                        var t = Clipboard.GetFileDropList();
-                        foreach (var s in t)
+                        LogMessage("INF", $"COPY appName:{appName} procName:{procName} title:{title}");
+
+                        // Data type info.
+                        //var dtypes = dobj.GetFormats();
+                        //LogMessage("INF", $"dtypes:{string.Join(",", dtypes)}");
+
+                        if (Clipboard.ContainsText())
                         {
-                            LogMessage("INF", $"FILE {s}");
+                            var t = Clipboard.GetText();
+                            LogMessage("INF", $"TEXT {t.Left(50)}");
                         }
-                    }
-                    else if (Clipboard.ContainsImage())
-                    {
-                        var t = Clipboard.GetImage();
-                        LogMessage("INF", $"IMAGE {t.Size}");
+                        else if (Clipboard.ContainsFileDropList())
+                        {
+                            var t = Clipboard.GetFileDropList();
+                            foreach (var s in t)
+                            {
+                                LogMessage("INF", $"FILE {s}");
+                            }
+                        }
+                        else if (Clipboard.ContainsImage())
+                        {
+                            var t = Clipboard.GetImage();
+                            LogMessage("INF", $"IMAGE {t.Size}");
+                        }
+                        else
+                        {
+                            LogMessage("INF", $"OTHER");
+                            // Don't care? Audio.
+                        }
                     }
                     else
                     {
-                        LogMessage("INF", $"OTHER");
-                        // Don't care?
-                        //bool ContainsAudio();
-                        //Stream GetAudioStream();
+
                     }
                 }
             }
@@ -349,6 +386,7 @@ namespace ClipboardEx
         }
         #endregion
 
+        #region Inject Paste Keyboard
         /// <summary>
         /// Send paste to focus window.
         /// </summary>
@@ -358,161 +396,126 @@ namespace ClipboardEx
             //The resultant System.Diagnostics.Process Object's MainModule Property has the Filename Property, which is the
             //Information you are probably searching.
             IntPtr hwnd = NativeMethods.GetForegroundWindow();
-            NativeMethods.GetWindowThreadProcessId(hwnd, out uint lpdwProcessId);
-            var p = Process.GetProcessById((int)lpdwProcessId);
-            Debug.WriteLine($"FileName:{p.MainModule!.FileName!}");
+            uint hres = NativeMethods.GetWindowThreadProcessId(hwnd, out uint lpdwProcessId);
+            if(hres == 0)
+            {
+                var p = Process.GetProcessById((int)lpdwProcessId);
+                LogMessage("DBG", $"FileName:{p.MainModule!.FileName}");
 
-            // This does work.
-            //for input use the virtual keycodes from https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
-            byte vkey = 0x56; // 'v'
-            byte ctrl = 0x11;
-            int KEYEVENTF_KEYUP = 0x0002;
-            NativeMethods.keybd_event(ctrl, 0, 0, 0);
-            NativeMethods.keybd_event(vkey, 0, 0, 0);
-            NativeMethods.keybd_event(ctrl, 0, KEYEVENTF_KEYUP, 0);
-            NativeMethods.keybd_event(vkey, 0, KEYEVENTF_KEYUP, 0);
+                // This does work. Virtual keycodes from https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+                byte vkey = 0x56; // 'v'
+                byte ctrl = 0x11;
+                int KEYEVENTF_KEYUP = 0x0002;
+                NativeMethods.keybd_event(ctrl, 0, 0, 0);
+                NativeMethods.keybd_event(vkey, 0, 0, 0);
+                NativeMethods.keybd_event(ctrl, 0, KEYEVENTF_KEYUP, 0);
+                NativeMethods.keybd_event(vkey, 0, KEYEVENTF_KEYUP, 0);
 
+                // TODO This doesn't work:
+                //NativeMethods.SendMessage(hwnd, 0x0302, IntPtr.Zero, IntPtr.Zero); // NativeMethods.WM_PASTE
+            }
+            else
+            {
 
-            // TODO This doesn't work:
-            //NativeMethods.SendMessage(hwnd, 0x0302, IntPtr.Zero, IntPtr.Zero); // NativeMethods.WM_PASTE
+            }
         }
 
+        /// <summary>
+        /// Low level hook function.
+        /// </summary>
+        /// <param name="code">If less than zero, pass the message to the CallNextHookEx function without further processing.</param>
+        /// <param name="wParam">One of the following messages: WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, or WM_SYSKEYUP.</param>
+        /// <param name="lParam">Pointer to a KBDLLHOOKSTRUCT structure.</param>
+        /// <returns></returns>
         public int KeyboardHookProc(int code, int wParam, ref KBDLLHOOKSTRUCT lParam)
         {
-            const int WM_KEYDOWN = 0x100;
-            const int WM_KEYUP = 0x101;
-            const int WM_SYSKEYDOWN = 0x104;
-            const int WM_SYSKEYUP = 0x105;
-
             if (code >= 0)
             {
                 Keys key = (Keys)lParam.vkCode;
 
-                Debug.WriteLine($"globalKeyboardHook code:{code} wParam:{wParam} key:{key} scancode:{lParam.scanCode}");
+                LogMessage("DBG", $"KeyboardHookProc code:{code} wParam:{wParam} key:{key} scancode:{lParam.scanCode}");
 
-                ////////////////////////// TODO this //////////////////////////////////////
-                //if (_hookedKeys.Contains(key))
-                //{
-                //    KeyEventArgs kea = new(key);
-                //    if ((wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) && (KeyDown != null))
-                //    {
-                //        KeyDown(this, kea);
-                //    }
-                //    else if ((wParam == WM_KEYUP || wParam == WM_SYSKEYUP) && (KeyUp != null))
-                //    {
-                //        KeyUp(this, kea);
-                //    }
-
-                //    if (kea.Handled)
-                //    {
-                //        ret = 1;
-                //    }
-                //}
-
-                ////////////////////////// TODO or that //////////////////////////////////////
-                bool ctrl_pressed = false;
-                bool v_pressed = false;
-                bool shft_pressed = false;
-                bool sth_else = false;
-
-                if (_busy)
+                if (_busy) // TODO needed?
                 {
                     return 0;
                 }
-
                 _busy = true;
 
                 if (code >= 0)
                 {
-                    if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
+                    // Update statuses.
+                    bool pressed = wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN;
+                    //bool up = wParam == WM_KEYUP || wParam == WM_SYSKEYUP;
+                    var vk = (Keys)lParam.vkCode;
+                    bool myLetter = false;
+
+                    switch (vk)
                     {
-                        switch ((Keys)lParam.vkCode)
-                        {
-                            case Keys.LControlKey:
-                            case Keys.RControlKey:
-                                ctrl_pressed = true;
-                                break;
+                        case Keys.LControlKey:
+                        case Keys.RControlKey:
+                            _controlPressed = pressed;
+                            break;
 
-                            case Keys.LShiftKey:
-                            case Keys.RShiftKey:
-                                shft_pressed = true;
-                                break;
+                        case Keys.LShiftKey:
+                        case Keys.RShiftKey:
+                            _shiftPressed = pressed;
+                            break;
 
-                            case Keys.V:
-                                v_pressed = true;
-                                break;
+                        case Keys.LMenu:
+                        case Keys.RMenu:
+                            _altPressed = pressed;
+                            break;
 
-                            default:
-                                sth_else = true;
-                                break;
-                        }
+                        default:
+                            if(vk == (_keyTrigger & Keys.KeyCode))
+                            {
+                                myLetter = pressed;
+                            }
+                            break;
                     }
 
-                    if (wParam == WM_KEYUP || wParam == WM_SYSKEYDOWN)
+                    // Is this the magic key?
+                    bool match = false;
+                    match &= _controlPressed && ((int)(_keyTrigger & Keys.Control) > 0);
+                    match &= _shiftPressed && ((int)(_keyTrigger & Keys.Shift) > 0);
+                    match &= _altPressed && ((int)(_keyTrigger & Keys.Alt) > 0);
+                    match &= myLetter;
+
+                    // Diagnostics.
+                    lblControl.BackColor = _controlPressed ? _pressedColor : Color.Transparent;
+                    lblShift.BackColor = _shiftPressed ? _pressedColor : Color.Transparent;
+                    lblAlt.BackColor = _altPressed ? _pressedColor : Color.Transparent;
+                    lblLetter.BackColor = myLetter ? _pressedColor : Color.Transparent;
+                    lblMatch.BackColor = match ? _pressedColor : Color.Transparent;
+
+                    if(match)
                     {
-                        switch ((Keys)lParam.vkCode)
-                        {
-                            case Keys.LControlKey:
-                            case Keys.RControlKey:
-                                ctrl_pressed = false;
-                                break;
-
-                            case Keys.LShiftKey:
-                            case Keys.RShiftKey:
-                                shft_pressed = false;
-                                break;
-
-                            case Keys.V:
-                                v_pressed = false;
-                                break;
-
-                            default:
-                                sth_else = true;
-                                break;
-                        }
-                    }
-
-                    if (sth_else)
-                    {
-                        ctrl_pressed = false;
-                        v_pressed = false;
-                        shft_pressed = false;
-                        sth_else = false;
-                    }
-
-                    if (ctrl_pressed && v_pressed && shft_pressed)
-                    {
-                        ctrl_pressed = false;
-                        v_pressed = false;
-                        shft_pressed = false;
-
-                        //ShowWindow();
-                        _busy = false;
-                        return 0;
+                        //TODO do paste;
                     }
 
                     _busy = false;
                 }
-
             }
+
             return NativeMethods.CallNextHookEx(_hhook, code, wParam, ref lParam);
         }
-
+        #endregion
 
         /// <summary>
-        /// 
+        /// Debug stuff.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void Paste_Click(object sender, EventArgs e)
         {
-            Clipboard.SetText("Paste_Click says hello");
+            Clipboard.SetText(rtbInfo.Text);
 
-            //void SetFileDropList(StringCollection filePaths);
-            //void SetImage(Image image);
-            //void SetText(string text);
 
-            TriggerPaste();
+            //Clipboard.SetText("Paste_Click wants to TriggerPaste()");
+            ////void SetFileDropList(StringCollection filePaths);
+            ////void SetImage(Image image);
+            ////void SetText(string text);
+            //TriggerPaste();
         }
 
         /// <summary>
