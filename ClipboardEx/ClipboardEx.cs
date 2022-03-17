@@ -19,40 +19,69 @@ using NBagOfUis;
 
 namespace ClipboardEx
 {
+    /// <summary>For internal management.</summary>
+    public enum ClipType { PlainText, RichText, Image, FileList, Other };
+
     /// <summary>
     /// - Handles all interactions at the Clipboard.XXX() API level.
     /// - Hooks keyboard to intercept magic paste key.
     /// </summary>
     public partial class ClipboardEx : Form
     {
+        #region Types
+        /// <summary>One handled clipboard API message.</summary>
+        record MsgSpec(string Name, Func<Message, uint> Handler, string Description);
+
+        /// <summary>One entry in the collection.</summary>
+       // record Clip(object Data, ClipType Ctype, string DisplayText, string OrigApp, string OrigTitle);
+        class Clip
+        {
+            public object? Data { get; set; } = null;
+            public ClipType Ctype { get; set; } = ClipType.Other;
+            public string DisplayText { get; set; } = "";
+            public Bitmap? Bitmap { get; set; } = null;
+            public string OrigApp { get; set; } = "N/A";
+            public string OrigTitle { get; set; } = "N/A";
+            public override string ToString()
+            {
+                return $"{Ctype}";
+            }
+        }
+        #endregion
+
         #region Fields
         /// <summary>Next in line for clipboard  notification.</summary>
         IntPtr _nextCb = IntPtr.Zero;
 
-        /// <summary>All handled clipboard API messages.</summary>
-        record MsgSpec(string Name, Func<Message, uint> Handler, string Description);
-        readonly Dictionary<int, MsgSpec> _clipboardMessages;
-
         /// <summary>Handle to the LL hook. Needed to unhook and call the next hook in the chain.</summary>
         readonly IntPtr _hhook = IntPtr.Zero;
 
-        /// <summary>The magic key to paste. TODO Make configurable.</summary>
+        /// <summary>All handled clipboard API messages.</summary>
+        readonly Dictionary<int, MsgSpec> _clipboardMessages = new();
+
+        /// <summary>All clips in the collection.</summary>
+        readonly LinkedList<Clip> _clips = new();
+
+        /// <summary>All clip displays.</summary>
+        readonly List<ClipDisplay> _displays = new();
+
+        /// <summary>The magic user key combo to open paste selection. TODO Make configurable.</summary>
         readonly Keys _keyTrigger = Keys.Control | Keys.Shift | Keys.V;
 
-        /// <summary>Current state.</summary>
+        /// <summary>Current state.</summary>//TODO these
         bool _controlPressed = false;
-
         /// <summary>Current state.</summary>
         bool _shiftPressed = false;
-
         /// <summary>Current state.</summary>
         bool _altPressed = false;
 
         /// <summary>Manage resources.</summary>
         bool _disposed;
+        #endregion
 
-        /// <summary>Debug.</summary>
-        readonly Color _pressedColor = Color.LimeGreen;
+        #region Debug Stuff
+        ///// <summary>Debug.</summary>
+        //readonly Color _pressedColor = Color.LimeGreen;
 
         /// <summary>Debug.</summary>
         int _ticks = 0;
@@ -62,6 +91,9 @@ namespace ClipboardEx
         #endregion
 
         #region Constants
+        const int MAX_CLIPS = 10;
+        const int TEXT_LINES = 5;
+        // Windows messages.
         const int WM_KEYDOWN = 0x100;
         //const int WM_KEYUP = 0x101;
         const int WM_SYSKEYDOWN = 0x104; // when the user presses the F10 key (menu bar) or holds down the ALT key and then presses another key
@@ -159,9 +191,25 @@ namespace ClipboardEx
 
             InitializeComponent();
 
-            // Init some controls.
-            rtbText.Text = "Just something to copy";
-            btnClear.Click += (_, __) => rtbInfo.Clear();
+            // Init controls.
+            int x = 5;
+            int y = 5;
+
+            for(int i = 0; i < MAX_CLIPS; i++)
+            {
+                ClipDisplay cd = new() { Location = new Point(x, y) };
+                cd.Hide();
+                _displays.Add(cd);
+                Controls.Add(cd);
+                x = cd.Right + 5;
+            }
+            Width = x + 20;
+
+            tvInfo.Colors.Add("ERR", Color.Pink);
+            tvInfo.Colors.Add("DBG", Color.LightGreen);
+            tvInfo.BackColor = Color.Cornsilk;
+
+            btnClear.Click += (_, __) => tvInfo.Clear();
             lblLetter.Text = (_keyTrigger & Keys.KeyCode).ToString();
 
             _nextCb = NativeMethods.SetClipboardViewer(Handle);
@@ -169,9 +217,9 @@ namespace ClipboardEx
             // HL messages of interest.
             _clipboardMessages = new()
             {
-                { WM_DRAWCLIPBOARD, new("WM_DRAWCLIPBOARD", CbDraw, "Sent to the first window in the clipboard viewer chain when the content of the clipboard changes.") },
+                { WM_DRAWCLIPBOARD, new("WM_DRAWCLIPBOARD", CbDraw, "Sent to the first window in the clipboard viewer chain when the content of the clipboard changes aka copy/cut.") },
                 { WM_CHANGECBCHAIN, new("WM_CHANGECBCHAIN", CbChange, "Sent to the first window in the clipboard viewer chain when a window is being removed from the chain.") },
-                { WM_CLIPBOARDUPDATE, new("WM_CLIPBOARDUPDATE", CbDefault, "Sent when the contents of the clipboard have changed.") },
+                { WM_CLIPBOARDUPDATE, new("WM_CLIPBOARDUPDATE", CbDefault, "Sent when the contents of the clipboard have changed. TODO like draw?") },
                 { WM_DESTROYCLIPBOARD, new("WM_DESTROYCLIPBOARD", CbDefault, "Sent to the clipboard owner when a call to the EmptyClipboard function empties the clipboard.") },
                 { WM_ASKCBFORMATNAME, new("WM_ASKCBFORMATNAME", CbDefault, "Sent to the clipboard owner by a clipboard viewer window to request the name of a CF_OWNERDISPLAY clipboard format.") },
                 { WM_CLEAR, new("WM_CLEAR", CbDefault, "Clear") },
@@ -195,30 +243,29 @@ namespace ClipboardEx
 
             // Paste test.
             _ticks = 5;
-            timer1.Tick += (_, __) => { if (_ticks-- > 0) { Clipboard.SetText($"XXXXX{_ticks}{Environment.NewLine}"); TriggerPaste(); } };
-            timer1.Enabled = true;
+            timer1.Tick += (_, __) => { if (_ticks-- > 0) { Clipboard.SetText($"XXXXX{_ticks}"); TriggerPaste(); } };
+            // timer1.Enabled = true;
         }
 
-        /// <summary>
-        /// Override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources.
-        /// </summary>
-        ~ClipboardEx()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method.
-            Dispose(false);
-        }
-
-        /// <summary>
-        /// Boilerplate.
-        /// </summary>
-        public new void Dispose() // TODO why do I need new()?
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method.
-            Dispose(true);
-            GC.SuppressFinalize(this);
-
-            base.Dispose();
-        }
+        // TODO cleaning up?
+        ///// <summary>
+        ///// Override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources.
+        ///// </summary>
+        //~ClipboardEx()
+        //{
+        //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method.
+        //    Dispose(false);
+        //}
+        ///// <summary>
+        ///// Boilerplate.
+        ///// </summary>
+        //public new void Dispose() // TODO why do I need new()?
+        //{
+        //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method.
+        //    Dispose(true);
+        //    GC.SuppressFinalize(this);
+        //    base.Dispose();
+        //}
 
         /// <summary>
         /// Boilerplate.
@@ -240,6 +287,7 @@ namespace ClipboardEx
             }
 
             _disposed = true;
+
             base.Dispose(disposing);
         }
         #endregion
@@ -257,9 +305,9 @@ namespace ClipboardEx
             {
                 MsgSpec sp = _clipboardMessages[m.Msg];
                 LogMessage("DBG", $"message {sp.Name} HWnd:{m.HWnd} Msg:{m.Msg} WParam:{m.WParam} LParam:{m.LParam} ");
+                
                 // Call handler.
                 ret = sp.Handler(m);
-
                 if (ret > 0)
                 {
                     LogMessage("ERR", $"handler {sp.Name} ret:0X{ret:X}");
@@ -267,13 +315,13 @@ namespace ClipboardEx
             }
             else
             {
-                // Ignore.
+                // Ignore, pass along.
                 base.WndProc(ref m);
             }
         }
 
         /// <summary>
-        /// Process the clipboard draw message.
+        /// Process the clipboard draw message becuase contents have changed.
         /// </summary>
         /// <param name="m"></param>
         /// <returns></returns>
@@ -295,43 +343,77 @@ namespace ClipboardEx
                     var appPath = Process.GetProcessById((int)processID).MainModule!.FileName;
                     var appName = Path.GetFileName(appPath);
                     StringBuilder title = new(100);
-                    int hres = NativeMethods.GetWindowText(hwnd, title, 100);
-                    if(hres == 0)
+                    int res = NativeMethods.GetWindowText(hwnd, title, 100);
+
+                    if(res > 0)
                     {
                         LogMessage("INF", $"COPY appName:{appName} procName:{procName} title:{title}");
 
                         // Data type info.
-                        //var dtypes = dobj.GetFormats();
-                        //LogMessage("INF", $"dtypes:{string.Join(",", dtypes)}");
+                        var dtypes = dobj.GetFormats();
+                        //var stypes = $"dtypes:{string.Join(",", dtypes)}";
+                        //LogMessage("INF", stypes);
+
+                        Clip clip = new()
+                        {
+                            Ctype = ClipType.Other,
+                            Data = Clipboard.GetDataObject(),
+                            OrigApp = appName ?? "N/A",
+                            OrigTitle = title.ToString()
+                        };
 
                         if (Clipboard.ContainsText())
                         {
+                            // Is it rich text? dtypes: Rich Text Format, Rich Text Format Without Objects, RTF As Text.
+                            var ctype = ClipType.PlainText;
+                            foreach(var dt in dtypes)
+                            {
+                                if(dt.Contains("Rich Text Format") || dt.Contains("RTF"))
+                                {
+                                    ctype = ClipType.RichText;
+                                    break;
+                                }
+                            }
+
+                            clip.Ctype = ctype;
                             var t = Clipboard.GetText();
-                            LogMessage("INF", $"TEXT {t.Left(50)}");
+                            clip.DisplayText = $"{t}{Environment.NewLine}...";
                         }
                         else if (Clipboard.ContainsFileDropList())
                         {
-                            var t = Clipboard.GetFileDropList();
-                            foreach (var s in t)
+                            StringBuilder sb = new();
+                            var l = Clipboard.GetFileDropList();
+
+                            for (int i = 0; i < Math.Min(l.Count, TEXT_LINES); i++)
                             {
-                                LogMessage("INF", $"FILE {s}");
+                                sb.AppendLine(l[i]);
                             }
+                            sb.AppendLine("...");
+                            clip.Ctype = ClipType.FileList;
+                            clip.DisplayText = sb.ToString();
                         }
                         else if (Clipboard.ContainsImage())
                         {
-                            var t = Clipboard.GetImage();
-                            LogMessage("INF", $"IMAGE {t.Size}");
+                            clip.Bitmap = (Bitmap)Clipboard.GetImage();
+                            clip.Ctype = ClipType.Image;
                         }
                         else
                         {
-                            LogMessage("INF", $"OTHER");
                             // Don't care? Audio.
                         }
+
+                        LogMessage("INF", $"COPY {clip}");
+                        _clips.AddFirst(clip);
+                        UpdateClipDisplays();
                     }
                     else
                     {
-
+                        LogMessage("ERR", $"res:{res}");
                     }
+                }
+                else
+                {
+                    LogMessage("ERR", $"GetDataObject() is null");
                 }
             }
             catch (ExternalException ex)
@@ -351,7 +433,50 @@ namespace ClipboardEx
         }
 
         /// <summary>
-        /// Process the clipboard change message.
+        /// 
+        /// </summary>
+        void UpdateClipDisplays()
+        {
+            // Remove tail.
+            while(_clips.Count > MAX_CLIPS)
+            {
+                _clips.RemoveLast();
+            }
+
+            for(int i = 0; i < MAX_CLIPS; i++)
+            {
+                var ds = _displays[i];
+                ds.Show();
+
+                if(i < _clips.Count)
+                {
+                    var clip = _clips.ElementAt(i);
+
+                    switch (clip.Ctype)
+                    {
+                        case ClipType.Image:
+                            ds.SetImage(clip.Bitmap);
+                            break;
+
+                        case ClipType.Other:
+                            ds.SetOther("TODO");
+                            break;
+
+                        default:
+                            ds.SetText(clip.Ctype.ToString(), clip.DisplayText);
+                            break;
+                    }
+                }
+                else
+                {
+                    ds.SetText("N/A", "Hidden");
+                    ds.Hide();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Process the clipboard change message. Update our link.
         /// </summary>
         /// <param name="m"></param>
         /// <returns></returns>
@@ -374,7 +499,7 @@ namespace ClipboardEx
         }
 
         /// <summary>
-        /// Process all other messages. Doesn't do anything right now.
+        /// Process all other messages. Doesn't do anything right now other than call base.
         /// </summary>
         /// <param name="m"></param>
         /// <returns></returns>
@@ -396,28 +521,21 @@ namespace ClipboardEx
             //The resultant System.Diagnostics.Process Object's MainModule Property has the Filename Property, which is the
             //Information you are probably searching.
             IntPtr hwnd = NativeMethods.GetForegroundWindow();
-            uint hres = NativeMethods.GetWindowThreadProcessId(hwnd, out uint lpdwProcessId);
-            if(hres == 0)
-            {
-                var p = Process.GetProcessById((int)lpdwProcessId);
-                LogMessage("DBG", $"FileName:{p.MainModule!.FileName}");
+            uint tid = NativeMethods.GetWindowThreadProcessId(hwnd, out uint lpdwProcessId);
+            var p = Process.GetProcessById((int)lpdwProcessId);
+            LogMessage("DBG", $"FileName:{p.MainModule!.FileName} pid:{ lpdwProcessId} tid:{tid}");
 
-                // This does work. Virtual keycodes from https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
-                byte vkey = 0x56; // 'v'
-                byte ctrl = 0x11;
-                int KEYEVENTF_KEYUP = 0x0002;
-                NativeMethods.keybd_event(ctrl, 0, 0, 0);
-                NativeMethods.keybd_event(vkey, 0, 0, 0);
-                NativeMethods.keybd_event(ctrl, 0, KEYEVENTF_KEYUP, 0);
-                NativeMethods.keybd_event(vkey, 0, KEYEVENTF_KEYUP, 0);
+            // This does work. Virtual keycodes from https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+            byte vkey = 0x56; // 'v'
+            byte ctrl = 0x11;
+            int KEYEVENTF_KEYUP = 0x0002;
+            NativeMethods.keybd_event(ctrl, 0, 0, 0);
+            NativeMethods.keybd_event(vkey, 0, 0, 0);
+            NativeMethods.keybd_event(ctrl, 0, KEYEVENTF_KEYUP, 0);
+            NativeMethods.keybd_event(vkey, 0, KEYEVENTF_KEYUP, 0);
 
-                // TODO This doesn't work:
-                //NativeMethods.SendMessage(hwnd, 0x0302, IntPtr.Zero, IntPtr.Zero); // NativeMethods.WM_PASTE
-            }
-            else
-            {
-
-            }
+            // Note that this doesn't work:
+            //NativeMethods.SendMessage(hwnd, 0x0302, IntPtr.Zero, IntPtr.Zero); // NativeMethods.WM_PASTE
         }
 
         /// <summary>
@@ -482,11 +600,11 @@ namespace ClipboardEx
                     match &= myLetter;
 
                     // Diagnostics.
-                    lblControl.BackColor = _controlPressed ? _pressedColor : Color.Transparent;
-                    lblShift.BackColor = _shiftPressed ? _pressedColor : Color.Transparent;
-                    lblAlt.BackColor = _altPressed ? _pressedColor : Color.Transparent;
-                    lblLetter.BackColor = myLetter ? _pressedColor : Color.Transparent;
-                    lblMatch.BackColor = match ? _pressedColor : Color.Transparent;
+                    lblControl.BackColor = _controlPressed ? UserSettings.TheSettings.ControlColor : Color.Transparent;
+                    lblShift.BackColor = _shiftPressed ? UserSettings.TheSettings.ControlColor : Color.Transparent;
+                    lblAlt.BackColor = _altPressed ? UserSettings.TheSettings.ControlColor : Color.Transparent;
+                    lblLetter.BackColor = myLetter ? UserSettings.TheSettings.ControlColor : Color.Transparent;
+                    lblMatch.BackColor = match ? UserSettings.TheSettings.ControlColor : Color.Transparent;
 
                     if(match)
                     {
@@ -506,11 +624,15 @@ namespace ClipboardEx
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Paste_Click(object sender, EventArgs e)
+        private void Debug_Click(object sender, EventArgs e)
         {
-            Clipboard.SetText(rtbInfo.Text);
 
 
+            ////////////////////////////////////////////////////
+            //Clipboard.SetText(tvInfo.Text);
+
+
+            ////////////////////////////////////////////////////
             //Clipboard.SetText("Paste_Click wants to TriggerPaste()");
             ////void SetFileDropList(StringCollection filePaths);
             ////void SetImage(Image image);
@@ -528,7 +650,7 @@ namespace ClipboardEx
             int catSize = 3;
             cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
             string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} {msg}{Environment.NewLine}";
-            rtbInfo.AppendText(s);
+            tvInfo.Add(s);
         }
     }
 }
