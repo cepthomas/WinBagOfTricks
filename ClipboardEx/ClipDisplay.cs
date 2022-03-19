@@ -27,6 +27,7 @@ namespace ClipboardEx
         public enum ClipEventType { Click, DoubleClick }
 
         /// <summary>Tell the boss.</summary>
+        public event EventHandler<ClipEventArgs>? ClipEvent;
         public class ClipEventArgs : EventArgs
         {
             public ClipEventType EventType { get; private set; } = ClipEventType.Click;
@@ -35,8 +36,6 @@ namespace ClipboardEx
                 EventType = ce;
             }
         }
-
-        public event EventHandler<ClipEventArgs>? ClipEvent;
         #endregion
 
         /// <summary>
@@ -91,15 +90,23 @@ namespace ClipboardEx
         /// <param name="text"></param>
         public void SetText(string stype, string text)
         {
+            const int PEEK_SIZE = 1000;
+            const int NUM_LINES = 5; // size to fit control
+
             // Show just a part with leading ws removed.
-            var s = text.Left(1000);
+            bool more = text.Length > PEEK_SIZE;
+            var s = text.Left(PEEK_SIZE);
             var ls = s.SplitByTokens("\r\n");
+            more |= ls.Count > NUM_LINES;
             StringBuilder sb = new();
-            for (int i = 0; i < Math.Min(ls.Count, 4); i++) // size to fit control
+            for (int i = 0; i < Math.Min(ls.Count, more ? NUM_LINES-1 : NUM_LINES); i++)
             {
                 sb.AppendLine(ls[i]);
             }
-            sb.AppendLine("...");
+            if (more)
+            {
+                sb.AppendLine("...");
+            }
 
             picImage.Hide();
             rtbText.Show();
@@ -137,6 +144,18 @@ namespace ClipboardEx
             rtbText.Hide();
             rtbText.Text = text;
             lblInfo.Text = "Other";
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="text"></param>
+        public void SetEmpty()
+        {
+            picImage.Hide();
+            rtbText.Show();
+            rtbText.Text = "";
+            lblInfo.Text = "Empty";
         }
     }
 }

@@ -19,35 +19,31 @@ namespace ClipboardEx
     [Serializable]
     public class UserSettings
     {
+        /// <summary>The global settings.</summary>
         public static UserSettings TheSettings { get; set; } = new UserSettings();
 
         #region Persisted editable properties
-
         [DisplayName("Control Color")]
         [Description("Pick what you like.")]
-        [Category("Cosmetics")]
         [Browsable(true)]
         [JsonConverter(typeof(JsonColorConverter))]
         public Color ControlColor { get; set; } = Color.LimeGreen;
 
-
+        [DisplayName("Fit Image")]
+        [Description("Fit to space or clip.")]
+        [Browsable(true)]
         public bool FitImage { get; set; } = true;
 
-        public Modifiers ModTrigger { get; set; } = Modifiers.ControlShift;
-
-        public Keys KeyTrigger { get; set; } = Keys.V;
-
-        //public bool ModControl { get; set; } = true;
-        //public bool ModShift { get; set; } = true;
-        //public bool ModAlt { get; set; } = false;
-
-
+        [DisplayName("Key Trigger")]
+        [Description("Windows key + this opens clip viewer")]
+        [Browsable(true)]
+        public Keys KeyTrigger { get; set; } = Keys.Z;
         #endregion
 
         #region Persisted Non-editable Properties
-        [Browsable(false)]
-        [JsonConverter(typeof(JsonRectangleConverter))]
-        public Rectangle FormGeometry { get; set; } = new Rectangle(50, 50, 800, 800);
+        //[Browsable(false)]
+        //[JsonConverter(typeof(JsonRectangleConverter))]
+        //public Rectangle FormGeometry { get; set; } = new Rectangle(50, 50, 800, 800);
         #endregion
 
         #region Fields

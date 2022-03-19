@@ -41,6 +41,7 @@ namespace ClipboardEx
             this.rtbText.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.rtbText.Location = new System.Drawing.Point(15, 55);
             this.rtbText.Name = "rtbText";
+            this.rtbText.ReadOnly = true;
             this.rtbText.Size = new System.Drawing.Size(125, 30);
             this.rtbText.TabIndex = 0;
             this.rtbText.Text = "";

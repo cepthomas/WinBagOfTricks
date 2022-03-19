@@ -16,136 +16,13 @@ using System.Text.Json;
 using NBagOfTricks;
 using NBagOfUis;
 
-
-// Windows logo key 
-// Open or close Start.
-// Windows logo key  + A
-// Open Action center.
-// Windows logo key  + B
-// Set focus in the notification area.
-// Windows logo key  + C
-// Open Cortana in listening mode.
-// Notes
-// This shortcut is turned off by default. To turn it on, select Start  > Settings  > Cortana, and turn on the toggle under Let Cortana listen for my commands when I press the Windows logo key + C.
-// Cortana is available only in certain countries/regions, and some Cortana features might not be available everywhere. If Cortana isn't available or is turned off, you can still use search.
-// Windows logo key  + Shift + C
-// Open the charms menu.
-// Windows logo key  + D
-// Display and hide the desktop.
-// Windows logo key  + Alt + D
-// Display and hide the date and time on the desktop.
-// Windows logo key  + E
-// Open File Explorer.
-// Windows logo key  + F
-// Open Feedback Hub and take a screenshot.
-// Windows logo key  + G
-// Open Game bar when a game is open.
-// Windows logo key  + Alt + B
-// Turn HDR on or off.
-// Note: Applies to the Xbox Game Bar app version 5.721.7292.0 or newer. To update your Xbox Game Bar, go to the Microsoft Store app and check for updates.
-// Windows logo key  + H
-// Start dictation.
-// Windows logo key  + I
-// Open Settings.
-// Windows logo key  + J
-// Set focus to a Windows tip when one is available.
-// When a Windows tip appears, bring focus to the Tip.  Pressing the keyboard shortcuts again to bring focus to the element on the screen to which the Windows tip is anchored.
-// Windows logo key  + K
-// Open the Connect quick action.
-// Windows logo key  + L
-// Lock your PC or switch accounts.
-// Windows logo key  + M
-// Minimize all windows.
-// Windows logo key  + O
-// Lock device orientation.
-// Windows logo key  + P
-// Choose a presentation display mode.
-// Windows logo key  + Ctrl + Q
-// Open Quick Assist.
-// Windows logo key  + R
-// Open the Run dialog box.
-// Windows logo key  + S
-// Open search.
-// Windows logo key  + Shift + S
-// Take a screenshot of part of  your screen.
-// Windows logo key  + T
-// Cycle through apps on the taskbar.
-// Windows logo key  + U
-// Open Ease of Access Center.
-// Windows logo key  + V
-// Open the clipboard. 
-// Note
-// To activate this shortcut, select Start  > Settings  > System  > Clipboard, and turn on the toggle under Clipboard history.
-// Windows logo key  + Shift + V
-// Cycle through notifications.
-// Windows logo key  + X
-// Open the Quick Link menu.
-// Windows logo key  + Y
-// Switch input between Windows Mixed Reality and your desktop.
-// Windows logo key  + Z
-// Show the commands available in an app in full-screen mode.
-// Windows logo key  + period (.) or semicolon (;)
-// Open emoji panel.
-// Windows logo key  + comma (,)
-// Temporarily peek at the desktop.
-// Windows logo key  + Pause
-// Display the System Properties dialog box.
-// Windows logo key  + Ctrl + F
-// Search for PCs (if you're on a network).
-// Windows logo key  + Shift + M
-// Restore minimized windows on the desktop.
-// Windows logo key  + number
-// Open the desktop and start the app pinned to the taskbar in the position indicated by the number. If the app is already running, switch to that app.
-// Windows logo key  + Shift + number
-// Open the desktop and start a new instance of the app pinned to the taskbar in the position indicated by the number.
-// Windows logo key  + Ctrl + number
-// Open the desktop and switch to the last active window of the app pinned to the taskbar in the position indicated by the number.
-// Windows logo key  + Alt + number
-// Open the desktop and open the Jump List for the app pinned to the taskbar in the position indicated by the number.
-// Windows logo key  + Ctrl + Shift + number
-// Open the desktop and open a new instance of the app located at the given position on the taskbar as an administrator.
-// Windows logo key  + Tab
-// Open Task view.
-// Windows logo key  + Up arrow
-// Maximize the window.
-// Windows logo key  + Down arrow
-// Remove current app from screen or minimize the desktop window.
-// Windows logo key  + Left arrow
-// Maximize the app or desktop window to the left side of the screen.
-// Windows logo key  + Right arrow
-// Maximize the app or desktop window to the right side of the screen.
-// Windows logo key  + Home
-// Minimize all except the active desktop window (restores all windows on second stroke).
-// Windows logo key  + Shift + Up arrow
-// Stretch the desktop window to the top and bottom of the screen.
-// Windows logo key  + Shift + Down arrow
-// Restore/minimize active desktop windows vertically, maintaining width.
-// Windows logo key  + Shift + Left arrow or Right arrow
-// Move an app or window in the desktop from one monitor to another.
-// Windows logo key  + Spacebar
-// Switch input language and keyboard layout.
-// Windows logo key  + Ctrl + Spacebar
-// Change to a previously selected input.
-// Windows logo key  + Ctrl + Enter
-// Turn on Narrator.
-// Windows logo key  + Plus (+)
-// Open Magnifier.
-// Windows logo key  + forward slash (/)
-// Begin IME reconversion.
-// Windows logo key  + Ctrl + V
-// Open shoulder taps.
-// Windows logo key  + Ctrl + Shift + B
-// Wake PC from blank or black screen.
-
+// TODO persist data.
 
 namespace ClipboardEx
 {
     #region Types
     /// <summary>For internal management.</summary>
-    public enum ClipType { PlainText, RichText, Image, FileList, Other };
-
-    /// <summary>For key spec.</summary>
-    public enum Modifiers { None = 0, Control = 0b0001, Shift = 0b0010, Alt = 0b0100, ControlShift = 0b0011, ControlAlt = 0b0101, ShiftAlt = 0b0110, ControlShiftAlt = 0b0111 };
+    public enum ClipType { Empty, PlainText, RichText, FileList, Image, Other };
     #endregion
 
     /// <summary>
@@ -162,12 +39,12 @@ namespace ClipboardEx
         class Clip
         {
             public object? Data { get; set; } = null;
-            public ClipType Ctype { get; set; } = ClipType.Other;
+            public ClipType Ctype { get; set; } = ClipType.Empty;
             public string Text { get; set; } = "";
             public Bitmap? Bitmap { get; set; } = null;
-            public string OrigApp { get; set; } = "N/A";
-            public string OrigTitle { get; set; } = "N/A";
-            public override string ToString() => $"{Ctype}";
+            public string OrigApp { get; set; } = "Unknown";
+            public string OrigTitle { get; set; } = "Unknown";
+            public override string ToString() => $"Ctype:{Ctype}";
         }
         #endregion
 
@@ -187,6 +64,12 @@ namespace ClipboardEx
         /// <summary>All clip displays.</summary>
         readonly List<ClipDisplay> _displays = new();
 
+        /// <summary>Key status.</summary>
+        bool _letterPressed = false;
+
+        /// <summary>Key status.</summary>
+        bool _winPressed = false;
+
         /// <summary>Manage resources.</summary>
         bool _disposed;
         #endregion
@@ -196,10 +79,7 @@ namespace ClipboardEx
         int _ticks = 0;
 
         /// <summary></summary>
-        bool _busy = false;
-
-        /// <summary></summary>
-        bool _debug = true;
+        readonly bool _debug = true;
         #endregion
 
         #region Constants
@@ -249,7 +129,6 @@ namespace ClipboardEx
 
             [DllImport("user32.dll")]
             internal static extern IntPtr SetWindowsHookEx(HookType hookType, HookProc lpfn, IntPtr hMod, uint dwThreadId);
-            //static extern IntPtr SetWindowsHookEx(HookType hookType, HookProc lpfn, IntPtr hMod, uint dwThreadId);
 
             [DllImport("user32.dll")]
             internal static extern bool UnhookWindowsHookEx(IntPtr hInstance);
@@ -289,7 +168,6 @@ namespace ClipboardEx
 
         /// <summaryDefines the callback for the hook. Apparently you can have multiple typed overloads.</summary>
         internal delegate int HookProc(int code, int wParam, ref KBDLLHOOKSTRUCT lParam);
-        //delegate IntPtr HookProc(int code, IntPtr wParam, IntPtr lParam);
         #endregion
 
         #region Lifecycle
@@ -298,34 +176,47 @@ namespace ClipboardEx
         /// </summary>
         public ClipboardEx()
         {
-            //Visible = false;
+            Visible = _debug;
 
             InitializeComponent();
 
             // Init clip displays.
             int x = 5;
             int y = 5;
-            for(int i = 0; i < MAX_CLIPS; i++)
+            int h = 0;
+            for (int i = 0; i < MAX_CLIPS; i++)
             {
                 ClipDisplay cd = new() { Location = new Point(x, y), Id = i };
-                //                cd.Hide();
-                cd.Visible = _debug;
                 _displays.Add(cd);
                 Controls.Add(cd);
                 cd.ClipEvent += Cd_ClipEvent;
                 x = cd.Right + 5;
+                h = cd.Height;
             }
+
+            UpdateClipDisplays();
+
+            // Clean me up.
             var borderWidth = (Width - ClientSize.Width) / 2;
             Width = x + borderWidth * 2;
-            
+
+            if(!_debug)
+            {
+                Height = h + 55;
+            }
 
             // Init controls.
             tvInfo.Colors.Add("ERR", Color.Pink);
             tvInfo.Colors.Add("DBG", Color.LightGreen);
             tvInfo.BackColor = Color.Cornsilk;
 
+            if(_debug)
+            {
+                rtbText.LoadFile(@"C:\Dev\repos\WinBagOfTricks\ClipboardEx\ex.rtf");
+            }
+
             btnClear.Click += (_, __) => tvInfo.Clear();
-            lblLetter.Text = (UserSettings.TheSettings.KeyTrigger & Keys.KeyCode).ToString();
+            lblLetter.Text = UserSettings.TheSettings.KeyTrigger.ToString();
 
             _nextCb = NativeMethods.SetClipboardViewer(Handle);
 
@@ -334,7 +225,7 @@ namespace ClipboardEx
             {
                 { WM_DRAWCLIPBOARD, new("WM_DRAWCLIPBOARD", CbDraw, "Sent to the first window in the clipboard viewer chain when the content of the clipboard changes aka copy/cut.") },
                 { WM_CHANGECBCHAIN, new("WM_CHANGECBCHAIN", CbChange, "Sent to the first window in the clipboard viewer chain when a window is being removed from the chain.") },
-                { WM_CLIPBOARDUPDATE, new("WM_CLIPBOARDUPDATE", CbDefault, "Sent when the contents of the clipboard have changed. TODO like draw?") },
+                { WM_CLIPBOARDUPDATE, new("WM_CLIPBOARDUPDATE", CbDefault, "Sent when the contents of the clipboard have changed.") },
                 { WM_DESTROYCLIPBOARD, new("WM_DESTROYCLIPBOARD", CbDefault, "Sent to the clipboard owner when a call to the EmptyClipboard function empties the clipboard.") },
                 { WM_ASKCBFORMATNAME, new("WM_ASKCBFORMATNAME", CbDefault, "Sent to the clipboard owner by a clipboard viewer window to request the name of a CF_OWNERDISPLAY clipboard format.") },
                 { WM_CLEAR, new("WM_CLEAR", CbDefault, "Clear") },
@@ -358,7 +249,7 @@ namespace ClipboardEx
 
             // Paste test.
             _ticks = 5;
-            timer1.Tick += (_, __) => { if (_ticks-- > 0) { Clipboard.SetText($"XXXXX{_ticks}"); TriggerPaste(); } };
+            timer1.Tick += (_, __) => { if (_ticks-- > 0) { Clipboard.SetText($"XXXXX{_ticks}"); DoPaste(); } };
             // timer1.Enabled = true;
         }
 
@@ -374,7 +265,7 @@ namespace ClipboardEx
         ///// <summary>
         ///// Boilerplate.
         ///// </summary>
-        //public new void Dispose() // TODO why do I need new()?
+        //public new void Dispose()
         //{
         //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method.
         //    Dispose(true);
@@ -407,33 +298,7 @@ namespace ClipboardEx
         }
         #endregion
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void Cd_ClipEvent(object? sender, ClipDisplay.ClipEventArgs e)
-        {
-            if (sender is not null)
-            {
-                // Paste this selection.
-
-                var cd = (ClipDisplay)sender;
-
-                switch(e.EventType)
-                {
-                    case ClipDisplay.ClipEventType.Click:
-                        // TODO do paste.
-                        LogMessage("DBG", "!!! Got a click");
-                        break;
-
-                }
-
-
-                //TODO left, right, delete...
-            }
-        }
-
+        #region Clip Management
         /// <summary>
         /// 
         /// </summary>
@@ -445,6 +310,7 @@ namespace ClipboardEx
                 _clips.RemoveLast();
             }
 
+            // Fill UI with what we have.
             for (int i = 0; i < MAX_CLIPS; i++)
             {
                 var ds = _displays[i];
@@ -456,29 +322,31 @@ namespace ClipboardEx
 
                     switch (clip.Ctype)
                     {
+                        case ClipType.Empty:
+                            ds.SetEmpty();
+                            ds.Visible = _debug;
+                            break;
+
                         case ClipType.Image:
-                            ds.SetImage(clip.Bitmap);
+                            ds.SetImage(clip.Bitmap!);
                             break;
 
                         case ClipType.Other:
-                            ds.SetOther("TODO");
+                            ds.SetOther(clip.Data!.ToString()!);
                             break;
 
-                        default:
+                        case ClipType.PlainText:
+                        case ClipType.RichText:
+                        case ClipType.FileList:
                             ds.SetText(clip.Ctype.ToString(), clip.Text);
                             break;
                     }
                 }
-                else
-                {
-                    ds.SetText("N/A", "Hidden");
-                    ds.Visible = _debug;
-                }
             }
         }
+        #endregion
 
-
-        #region Windows Message Processing
+        #region Windows Message Processing - Cut/Copy/Paste
         /// <summary>
         /// Handle window messages.
         /// </summary>
@@ -490,13 +358,13 @@ namespace ClipboardEx
             if (_clipboardMessages is not null && _clipboardMessages.ContainsKey(m.Msg))
             {
                 MsgSpec sp = _clipboardMessages[m.Msg];
-                LogMessage("DBG", $"message {sp.Name} HWnd:{m.HWnd} Msg:{m.Msg} WParam:{m.WParam} LParam:{m.LParam} ");
+                LogMessage("DBG", $"WndProc message {sp.Name} HWnd:{m.HWnd} Msg:{m.Msg} WParam:{m.WParam} LParam:{m.LParam} ");
                 
                 // Call handler.
                 ret = sp.Handler(m);
                 if (ret > 0)
                 {
-                    LogMessage("ERR", $"handler {sp.Name} ret:0X{ret:X}");
+                    LogMessage("ERR", $"WndProc handler {sp.Name} ret:0X{ret:X}");
                 }
             }
             else
@@ -507,7 +375,7 @@ namespace ClipboardEx
         }
 
         /// <summary>
-        /// Process the clipboard draw message becuase contents have changed.
+        /// Process the clipboard draw message because contents have changed.
         /// </summary>
         /// <param name="m"></param>
         /// <returns></returns>
@@ -533,18 +401,18 @@ namespace ClipboardEx
 
                     if(res > 0)
                     {
-                        LogMessage("INF", $"COPY appName:{appName} procName:{procName} title:{title}");
+                        LogMessage("INF", $"CbDraw COPY appName:{appName} procName:{procName} title:{title}");
 
                         // Data type info.
                         var dtypes = dobj.GetFormats();
-                        //var stypes = $"dtypes:{string.Join(",", dtypes)}";
+                        //var stypes = $"CbDraw dtypes:{string.Join(",", dtypes)}";
                         //LogMessage("INF", stypes);
 
                         Clip clip = new()
                         {
                             Ctype = ClipType.Other,
                             Data = Clipboard.GetDataObject(),
-                            OrigApp = appName ?? "N/A",
+                            OrigApp = appName ?? "Unknown",
                             OrigTitle = title.ToString()
                         };
 
@@ -579,28 +447,27 @@ namespace ClipboardEx
                             // Something else, don't try to show it.
                         }
 
-                        //LogMessage("INF", $"COPY {clip}");
                         _clips.AddFirst(clip);
                         UpdateClipDisplays();
                     }
                     else
                     {
-                        LogMessage("ERR", $"res:{res}");
+                        LogMessage("ERR", $"CbDraw res:{res}");
                     }
                 }
                 else
                 {
-                    LogMessage("ERR", $"GetDataObject() is null");
+                    LogMessage("ERR", $"CbDraw GetDataObject() is null");
                 }
             }
             catch (ExternalException ex)
             {
                 // TODO retry: Data could not be retrieved from the Clipboard. This typically occurs when the Clipboard is being used by another process.
-                LogMessage("ERR", $"WM_DRAWCLIPBOARD ExternalException:{ex}");
+                LogMessage("ERR", $"CbDraw WM_DRAWCLIPBOARD ExternalException:{ex}");
             }
             catch (Exception ex)
             {
-                LogMessage("ERR", $"WM_DRAWCLIPBOARD Exception:{ex}");
+                LogMessage("ERR", $"CbDraw WM_DRAWCLIPBOARD Exception:{ex}");
             }
 
             // Pass along to the next in the chain.
@@ -645,15 +512,53 @@ namespace ClipboardEx
         }
         #endregion
 
-        #region Inject Paste Keyboard
+        #region New Paste Functions
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void Cd_ClipEvent(object? sender, ClipDisplay.ClipEventArgs e)
+        {
+            if (sender is not null)
+            {
+                // Paste this selection and move it to the front.
+
+                var cd = (ClipDisplay)sender;
+
+                switch (e.EventType)
+                {
+                    case ClipDisplay.ClipEventType.Click:
+                        LogMessage("DBG", "!!! Got a click");
+                        int i = cd.Id;
+                        if (i >= 0 && i < _clips.Count)
+                        {
+                            Clip clip = _clips.ElementAt(i);
+                            Clipboard.SetDataObject(clip.Data);
+                            DoPaste();
+                            // Push to head of class.
+                            _clips.Remove(clip);
+                            _clips.AddFirst(clip);
+                            UpdateClipDisplays();
+                            Visible = _debug;
+                        }
+                        else
+                        {
+                            // error?
+                        }
+                        break;
+                }
+
+                //  Also could do left, right, delete, etc.
+            }
+        }
+
         /// <summary>
         /// Send paste to focus window.
         /// </summary>
-        public void TriggerPaste()
+        public void DoPaste()
         {
-            //Use GetWindowThreadProcessId to get the process ID, then Process.GetProcessById to retrieve the process information.
-            //The resultant System.Diagnostics.Process Object's MainModule Property has the Filename Property, which is the
-            //Information you are probably searching.
             IntPtr hwnd = NativeMethods.GetForegroundWindow();
             uint tid = NativeMethods.GetWindowThreadProcessId(hwnd, out uint lpdwProcessId);
             var p = Process.GetProcessById((int)lpdwProcessId);
@@ -668,12 +573,12 @@ namespace ClipboardEx
             NativeMethods.keybd_event(ctrl, 0, KEYEVENTF_KEYUP, 0);
             NativeMethods.keybd_event(vkey, 0, KEYEVENTF_KEYUP, 0);
 
-            // Note that this doesn't work:
+            // Note that this doesn't work, which makes sense.
             //NativeMethods.SendMessage(hwnd, 0x0302, IntPtr.Zero, IntPtr.Zero); // NativeMethods.WM_PASTE
         }
 
         /// <summary>
-        /// Low level hook function.
+        /// Low level hook function. Sniffs for magic key.
         /// </summary>
         /// <param name="code">If less than zero, pass the message to the CallNextHookEx function without further processing.</param>
         /// <param name="wParam">One of the following messages: WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, or WM_SYSKEYUP.</param>
@@ -687,107 +592,42 @@ namespace ClipboardEx
 
                 LogMessage("DBG", $"KeyboardHookProc code:{code} wParam:{wParam} key:{key} scancode:{lParam.scanCode}");
 
-                if (_busy) // TODO needed?
-                {
-                    return 0;
-                }
-                _busy = true;
-
                 if (code >= 0)
                 {
                     // Update statuses.
                     bool pressed = wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN;
                     //bool up = wParam == WM_KEYUP || wParam == WM_SYSKEYUP;
-                    bool myLetter = false;
-                    bool controlPressed = false;
-                    bool shiftPressed = false;
-                    bool altPressed = false;
 
-
-                    switch (key)
+                    if (key == Keys.LWin || key == Keys.RWin)
                     {
-                        case Keys.LControlKey:
-                        case Keys.RControlKey:
-                            controlPressed = pressed;
-                            break;
-
-                        case Keys.LShiftKey:
-                        case Keys.RShiftKey:
-                            shiftPressed = pressed;
-                            break;
-
-                        case Keys.LMenu:
-                        case Keys.RMenu:
-                            altPressed = pressed;
-                            break;
-
-                        default:
-                            if(key == UserSettings.TheSettings.KeyTrigger)
-                            {
-                                myLetter = pressed;
-                            }
-                            break;
+                        _winPressed = pressed;
                     }
 
-                    // Is this the magic key?
-                    bool match = myLetter;
-                    if (match)
+                    if (key == UserSettings.TheSettings.KeyTrigger)
                     {
-                        switch (UserSettings.TheSettings.ModTrigger)
-                        {
-                            case Modifiers.None:
-                                match = !controlPressed && !shiftPressed && !altPressed;
-                                break;
-
-                            case Modifiers.Control:
-                                match = controlPressed && !shiftPressed && !altPressed;
-                                break;
-
-                            case Modifiers.Shift:
-                                match = !controlPressed && shiftPressed && !altPressed;
-                                break;
-
-                            case Modifiers.Alt:
-                                match = !controlPressed && !shiftPressed && altPressed;
-                                break;
-
-                            case Modifiers.ControlShift:
-                                match = controlPressed && shiftPressed && !altPressed;
-                                break;
-
-                            case Modifiers.ControlAlt:
-                                match = controlPressed && !shiftPressed && altPressed;
-                                break;
-
-                            case Modifiers.ShiftAlt:
-                                match = !controlPressed && shiftPressed && altPressed;
-                                break;
-
-                            case Modifiers.ControlShiftAlt:
-                                match = controlPressed && shiftPressed && altPressed;
-                                break;
-                        }
+                        _letterPressed = pressed;
                     }
+
+                    bool match = _winPressed && _letterPressed;
 
                     // Diagnostics.
-                    lblControl.BackColor = controlPressed ? UserSettings.TheSettings.ControlColor : Color.Transparent;
-                    lblShift.BackColor = shiftPressed ? UserSettings.TheSettings.ControlColor : Color.Transparent;
-                    lblAlt.BackColor = altPressed ? UserSettings.TheSettings.ControlColor : Color.Transparent;
-                    lblLetter.BackColor = myLetter ? UserSettings.TheSettings.ControlColor : Color.Transparent;
+                    lblWin.BackColor = _winPressed ? UserSettings.TheSettings.ControlColor : Color.Transparent;
+                    lblLetter.BackColor = _letterPressed ? UserSettings.TheSettings.ControlColor : Color.Transparent;
                     lblMatch.BackColor = match ? UserSettings.TheSettings.ControlColor : Color.Transparent;
 
-                    if(match)
+                    if (match)
                     {
-                        //TODO do paste;
+                        // show UI;
+                        Visible = true;
                     }
-
-                    _busy = false;
                 }
             }
 
             return NativeMethods.CallNextHookEx(_hhook, code, wParam, ref lParam);
         }
         #endregion
+
+
 
         /// <summary>
         /// Debug stuff.
