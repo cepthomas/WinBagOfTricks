@@ -60,7 +60,7 @@ namespace ClipboardEx
             this.lblInfo.Name = "lblInfo";
             this.lblInfo.Size = new System.Drawing.Size(146, 25);
             this.lblInfo.TabIndex = 2;
-            this.lblInfo.Text = "Info";
+            this.lblInfo.Text = "Empty";
             // 
             // ClipDisplay
             // 

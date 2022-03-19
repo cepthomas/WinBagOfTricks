@@ -33,6 +33,15 @@ namespace ClipboardEx
 
         public bool FitImage { get; set; } = true;
 
+        public Modifiers ModTrigger { get; set; } = Modifiers.ControlShift;
+
+        public Keys KeyTrigger { get; set; } = Keys.V;
+
+        //public bool ModControl { get; set; } = true;
+        //public bool ModShift { get; set; } = true;
+        //public bool ModAlt { get; set; } = false;
+
+
         #endregion
 
         #region Persisted Non-editable Properties
