@@ -79,7 +79,6 @@
             this.btnSettings.Size = new System.Drawing.Size(29, 24);
             this.btnSettings.Text = "toolStripButton1";
             this.btnSettings.ToolTipText = "Make it your own";
-            this.btnSettings.Click += new System.EventHandler(this.Settings_Click);
             // 
             // btnAbout
             // 

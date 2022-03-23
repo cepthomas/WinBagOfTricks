@@ -17,11 +17,13 @@ using NBagOfUis;
 
 namespace WinBagOfTricks
 {
+    /// <summary>
+    /// Actually more of a test host.
+    /// </summary>
     public partial class MainForm : Form
     {
         #region Fields
-        /// <summary>Current global user settings.</summary>
-        UserSettings _settings = new();
+
         #endregion
 
         #region Lifecycle
@@ -38,21 +40,6 @@ namespace WinBagOfTricks
         /// </summary>
         void MainForm_Load(object? sender, EventArgs e)
         {
-            // Get the settings.
-            string appDir = MiscUtils.GetAppDataDir("WinBagOfTricks", "Ephemera");
-            DirectoryInfo di = new(appDir);
-            di.Create();
-            _settings = UserSettings.Load(appDir);
-
-            // Make it colorful.
-            toolStrip1.Renderer = new NBagOfUis.CheckBoxRenderer() { SelectedColor = _settings.SelectedColor };
-
-            fileDropDownButton.Image = GraphicsUtils.ColorizeBitmap((Bitmap)fileDropDownButton.Image, _settings.ControlColor);
-            btnSettings.Image = GraphicsUtils.ColorizeBitmap((Bitmap)btnSettings.Image, _settings.ControlColor);
-            btnAbout.Image = GraphicsUtils.ColorizeBitmap((Bitmap)btnAbout.Image, _settings.ControlColor);
-            btnLoop.Image = GraphicsUtils.ColorizeBitmap((Bitmap)btnLoop.Image, _settings.ControlColor);
-            btnDebug.Image = GraphicsUtils.ColorizeBitmap((Bitmap)btnDebug.Image, _settings.ControlColor);
-
             // Toolbar configs.
             btnLoop.Checked = false;
 
@@ -66,12 +53,6 @@ namespace WinBagOfTricks
             // Check for "config_taskbar" then do something...
             LogMessage("INF", $"args: {string.Join(" ", Environment.GetCommandLineArgs())}");
 
-            // Init UI from settings
-            Location = new Point(_settings.FormGeometry.X, _settings.FormGeometry.Y);
-            Size = new Size(_settings.FormGeometry.Width, _settings.FormGeometry.Height);
-            WindowState = FormWindowState.Normal;
-            //KeyPreview = true; // for routing kbd strokes through MainForm_KeyDown
-
             InitNavigator();
 
             Text = $"WinBagOfTricks {MiscUtils.GetVersionString()} - No file loaded";
@@ -82,40 +63,7 @@ namespace WinBagOfTricks
         /// </summary>
         void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
         {
-            SaveSettings();
-        }
-        #endregion
-
-        #region User settings
-        /// <summary>
-        /// Collect and save user settings.
-        /// </summary>
-        void SaveSettings()
-        {
-            _settings.FormGeometry = new Rectangle(Location.X, Location.Y, Size.Width, Size.Height);
-            _settings.Save();
-        }
-
-        /// <summary>
-        /// Edit the common options in a property grid.
-        /// </summary>
-        void Settings_Click(object? sender, EventArgs e)
-        {
-            var res = _settings.Edit();
-
-            // Figure out what changed - each handled differently.
-            if (res.restart)
-            {
-                MessageBox.Show("Restart required for device changes to take effect");
-            }
-
-            if (res.navChange)
-            {
-                InitNavigator();
-            }
-
-            _settings.Save();
-
+            //SaveSettings();
         }
         #endregion
 
@@ -142,7 +90,7 @@ namespace WinBagOfTricks
             this.InvokeIfRequired(_ =>
             {
                 string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} {msg}";
-                txtViewer.AddLine(s);
+                txtViewer.AppendLine(s);
             });
         }
         #endregion
@@ -155,12 +103,8 @@ namespace WinBagOfTricks
             ftreeLeft.FilterExts.Clear();
             ftreeLeft.FilterExts.Add(".txt .cs");
 
-            if (_settings.RootDirs.Count == 0)
-            {
-                _settings.RootDirs.Add(@"C:\");
-            }
-
-            ftreeLeft.RootDirs = _settings.RootDirs;
+            ftreeLeft.RootDirs.Clear();
+            ftreeLeft.RootDirs.Add(@"C:\Dev");
             ftreeLeft.SingleClickSelect = true;// or?
 
             ftreeLeft.Init();
@@ -177,6 +121,11 @@ namespace WinBagOfTricks
             //_fn = fn;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         void Debug_Click(object sender, EventArgs e)
         {
         }

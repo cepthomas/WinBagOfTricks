@@ -16,7 +16,9 @@ using System.Text.Json;
 using NBagOfTricks;
 using NBagOfUis;
 
-// TODO persist data.
+// TODO persist clip data.
+// TODO edit settings.
+
 
 namespace ClipboardEx
 {
@@ -49,6 +51,9 @@ namespace ClipboardEx
         #endregion
 
         #region Fields
+        /// <summary>The settings.</summary>
+        UserSettings _settings;
+
         /// <summary>Next in line for clipboard  notification.</summary>
         IntPtr _nextCb = IntPtr.Zero;
 
@@ -77,9 +82,6 @@ namespace ClipboardEx
         #region Debug Stuff
         /// <summary>Debug.</summary>
         int _ticks = 0;
-
-        /// <summary></summary>
-        readonly bool _debug = true;
         #endregion
 
         #region Constants
@@ -176,33 +178,37 @@ namespace ClipboardEx
         /// </summary>
         public ClipboardEx()
         {
-            Visible = _debug;
-
             InitializeComponent();
+
+            string appDir = MiscUtils.GetAppDataDir("ClipboardEx", "Ephemera");
+            _settings = (UserSettings)Settings.Load(appDir, typeof(UserSettings));
+
+            Visible = _settings.Debug;
 
             // Init clip displays.
             int x = 5;
             int y = 5;
-            int h = 0;
             for (int i = 0; i < MAX_CLIPS; i++)
             {
                 ClipDisplay cd = new() { Location = new Point(x, y), Id = i };
                 _displays.Add(cd);
                 Controls.Add(cd);
                 cd.ClipEvent += Cd_ClipEvent;
-                x = cd.Right + 5;
-                h = cd.Height;
+                //x = cd.Right + 5;
+                y = cd.Bottom + 5;
             }
 
             UpdateClipDisplays();
 
             // Clean me up.
             var borderWidth = (Width - ClientSize.Width) / 2;
-            Width = x + borderWidth * 2;
+            //Width = x + borderWidth * 2;
+            Height = y + borderWidth * 2 + 55;
 
-            if(!_debug)
+            if (!_settings.Debug)
             {
-                Height = h + 55;
+                //Height = h + 55;
+                Width = _displays[0].Right + borderWidth * 2 + 5;
             }
 
             // Init controls.
@@ -210,13 +216,13 @@ namespace ClipboardEx
             tvInfo.Colors.Add("DBG", Color.LightGreen);
             tvInfo.BackColor = Color.Cornsilk;
 
-            if(_debug)
+            if(_settings.Debug)
             {
                 rtbText.LoadFile(@"C:\Dev\repos\WinBagOfTricks\ClipboardEx\ex.rtf");
             }
 
             btnClear.Click += (_, __) => tvInfo.Clear();
-            lblLetter.Text = UserSettings.TheSettings.KeyTrigger.ToString();
+            lblLetter.Text = _settings.KeyTrigger.ToString();
 
             _nextCb = NativeMethods.SetClipboardViewer(Handle);
 
@@ -248,9 +254,19 @@ namespace ClipboardEx
             }
 
             // Paste test.
-            _ticks = 5;
-            timer1.Tick += (_, __) => { if (_ticks-- > 0) { Clipboard.SetText($"XXXXX{_ticks}"); DoPaste(); } };
-            // timer1.Enabled = true;
+            //_ticks = 5;
+            //timer1.Tick += (_, __) => { if (_ticks-- > 0) { Clipboard.SetText($"XXXXX{_ticks}"); DoPaste(); } };
+            //timer1.Enabled = true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void ClipboardEx_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            _settings.Save();
         }
 
         // TODO cleaning up?
@@ -324,11 +340,11 @@ namespace ClipboardEx
                     {
                         case ClipType.Empty:
                             ds.SetEmpty();
-                            ds.Visible = _debug;
+                            //ds.Visible = _settings.Debug;
                             break;
 
                         case ClipType.Image:
-                            ds.SetImage(clip.Bitmap!);
+                            ds.SetImage(clip.Bitmap!, _settings.FitImage);
                             break;
 
                         case ClipType.Other:
@@ -338,9 +354,14 @@ namespace ClipboardEx
                         case ClipType.PlainText:
                         case ClipType.RichText:
                         case ClipType.FileList:
-                            ds.SetText(clip.Ctype.ToString(), clip.Text);
+                            ds.SetText(clip.Ctype, clip.Text);
                             break;
                     }
+                }
+                else
+                {
+                    ds.SetEmpty();
+                    //ds.Visible = _settings.Debug;
                 }
             }
         }
@@ -513,7 +534,6 @@ namespace ClipboardEx
         #endregion
 
         #region New Paste Functions
-
         /// <summary>
         /// 
         /// </summary>
@@ -541,7 +561,7 @@ namespace ClipboardEx
                             _clips.Remove(clip);
                             _clips.AddFirst(clip);
                             UpdateClipDisplays();
-                            Visible = _debug;
+                            Visible = _settings.Debug;
                         }
                         else
                         {
@@ -555,7 +575,7 @@ namespace ClipboardEx
         }
 
         /// <summary>
-        /// Send paste to focus window.
+        /// Send paste to focus window. TODO but the focus is me now!
         /// </summary>
         public void DoPaste()
         {
@@ -603,7 +623,7 @@ namespace ClipboardEx
                         _winPressed = pressed;
                     }
 
-                    if (key == UserSettings.TheSettings.KeyTrigger)
+                    if (key == _settings.KeyTrigger)
                     {
                         _letterPressed = pressed;
                     }
@@ -611,9 +631,9 @@ namespace ClipboardEx
                     bool match = _winPressed && _letterPressed;
 
                     // Diagnostics.
-                    lblWin.BackColor = _winPressed ? UserSettings.TheSettings.ControlColor : Color.Transparent;
-                    lblLetter.BackColor = _letterPressed ? UserSettings.TheSettings.ControlColor : Color.Transparent;
-                    lblMatch.BackColor = match ? UserSettings.TheSettings.ControlColor : Color.Transparent;
+                    lblWin.BackColor = _winPressed ? _settings.ControlColor : Color.Transparent;
+                    lblLetter.BackColor = _letterPressed ? _settings.ControlColor : Color.Transparent;
+                    lblMatch.BackColor = match ? _settings.ControlColor : Color.Transparent;
 
                     if (match)
                     {
@@ -627,8 +647,7 @@ namespace ClipboardEx
         }
         #endregion
 
-
-
+        #region Debug
         /// <summary>
         /// Debug stuff.
         /// </summary>
@@ -637,17 +656,6 @@ namespace ClipboardEx
         private void Debug_Click(object sender, EventArgs e)
         {
 
-
-            ////////////////////////////////////////////////////
-            //Clipboard.SetText(tvInfo.Text);
-
-
-            ////////////////////////////////////////////////////
-            //Clipboard.SetText("Paste_Click wants to TriggerPaste()");
-            ////void SetFileDropList(StringCollection filePaths);
-            ////void SetImage(Image image);
-            ////void SetText(string text);
-            //TriggerPaste();
         }
 
         /// <summary>
@@ -659,8 +667,36 @@ namespace ClipboardEx
         {
             int catSize = 3;
             cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
-            string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} {msg}{Environment.NewLine}";
-            tvInfo.Add(s);
+            string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} {msg}";
+            tvInfo.AppendLine(s);
         }
+        #endregion
+    }
+
+    [Serializable]
+    public class UserSettings : Settings
+    {
+        #region Persisted editable properties
+        [DisplayName("Control Color")]
+        [Description("Pick whatever you like.")]
+        [Browsable(true)]
+        [JsonConverter(typeof(JsonColorConverter))]
+        public Color ControlColor { get; set; } = Color.LimeGreen;
+
+        [DisplayName("Fit Image")]
+        [Description("Fit to space or clip.")]
+        [Browsable(true)]
+        public bool FitImage { get; set; } = true;
+
+        [DisplayName("Key Trigger")]
+        [Description("Windows key + this opens clip viewer")]
+        [Browsable(true)]
+        public Keys KeyTrigger { get; set; } = Keys.Z;
+
+        [DisplayName("Debug Mode")]
+        [Description("Shows more stuff.")]
+        [Browsable(true)]
+        public bool Debug { get; set; } = false;
+        #endregion
     }
 }

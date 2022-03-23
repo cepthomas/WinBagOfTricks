@@ -53,24 +53,15 @@ namespace ClipboardEx
         /// <param name="e"></param>
         private void ClipDisplay_Load(object sender, EventArgs e)
         {
-            Size sz = new(Width, Height - lblInfo.Height);
-            Point loc = new(0, lblInfo.Height);
-
-            lblInfo.Left = 0;
-            lblInfo.Width = Width;
-
-            picImage.Size = sz;
-            picImage.Location = loc;
-
-            rtbText.Size = sz;
-            rtbText.Location = loc;
+            rtbText.Dock = DockStyle.Fill;
             rtbText.ScrollBars = RichTextBoxScrollBars.Horizontal;
             rtbText.WordWrap = false;
+
+            picImage.Dock = DockStyle.Fill;
 
             // Intercept UI.
             picImage.Click += Control_Click;
             rtbText.Click += Control_Click;
-            lblInfo.Click += Control_Click;
         }
 
         /// <summary>
@@ -88,10 +79,10 @@ namespace ClipboardEx
         /// </summary>
         /// <param name="stype"></param>
         /// <param name="text"></param>
-        public void SetText(string stype, string text)
+        public void SetText(ClipType ctype, string text)
         {
             const int PEEK_SIZE = 1000;
-            const int NUM_LINES = 5; // size to fit control
+            const int NUM_LINES = 4; // size to fit control
 
             // Show just a part with leading ws removed.
             bool more = text.Length > PEEK_SIZE;
@@ -110,28 +101,31 @@ namespace ClipboardEx
 
             picImage.Hide();
             rtbText.Show();
-            rtbText.Text = sb.ToString();
-            lblInfo.Text = stype;
+            rtbText.Clear();
+
+            if(ctype == ClipType.RichText) // TODO ideally make a bmp of the rt - for now just colorize it to indicate.
+            {
+                var tcol = rtbText.SelectionColor;
+                rtbText.SelectionColor = Color.Red;
+                rtbText.AppendText(sb.ToString());
+                rtbText.SelectionColor = tcol;
+            }
+            else
+            {
+                rtbText.Text = sb.ToString();
+            }
         }
 
         /// <summary>
         /// Image specific setup.
         /// </summary>
-        /// <param name="bmp"></param>
-        public void SetImage(Bitmap bmp)
+        /// <param name="bmp">The image.</param>
+        /// <param name="fit">Fit or clip.</param>
+        public void SetImage(Bitmap bmp, bool fit)
         {
             picImage.Show();
             rtbText.Hide();
-            if (UserSettings.TheSettings.FitImage)
-            {
-                picImage.Image = GraphicsUtils.ResizeBitmap(bmp, Width, Height);
-            }
-            else
-            {
-                picImage.Image = bmp;
-            }
-
-            lblInfo.Text = "Image";
+            picImage.Image = fit ? GraphicsUtils.ResizeBitmap(bmp, Width, Height) : bmp;
         }
 
         /// <summary>
@@ -143,7 +137,6 @@ namespace ClipboardEx
             picImage.Show();
             rtbText.Hide();
             rtbText.Text = text;
-            lblInfo.Text = "Other";
         }
 
         /// <summary>
@@ -154,8 +147,7 @@ namespace ClipboardEx
         {
             picImage.Hide();
             rtbText.Show();
-            rtbText.Text = "";
-            lblInfo.Text = "Empty";
+            rtbText.Text = "Empty";
         }
     }
 }

@@ -42,27 +42,27 @@ namespace ClipboardEx
             // 
             // tvInfo
             // 
-            this.tvInfo.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.tvInfo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.tvInfo.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.tvInfo.Location = new System.Drawing.Point(233, 166);
+            this.tvInfo.Location = new System.Drawing.Point(282, 147);
             this.tvInfo.MaxText = 50000;
             this.tvInfo.Name = "tvInfo";
-            this.tvInfo.Size = new System.Drawing.Size(836, 312);
+            this.tvInfo.Size = new System.Drawing.Size(511, 420);
             this.tvInfo.TabIndex = 0;
-            this.tvInfo.Text = "";
+            this.tvInfo.WordWrap = true;
             // 
             // rtbText
             // 
             this.rtbText.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.rtbText.Location = new System.Drawing.Point(11, 271);
+            this.rtbText.Location = new System.Drawing.Point(381, 8);
             this.rtbText.Name = "rtbText";
-            this.rtbText.Size = new System.Drawing.Size(205, 207);
+            this.rtbText.Size = new System.Drawing.Size(411, 133);
             this.rtbText.TabIndex = 1;
             this.rtbText.Text = "";
             // 
             // btnDebug
             // 
-            this.btnDebug.Location = new System.Drawing.Point(12, 166);
+            this.btnDebug.Location = new System.Drawing.Point(281, 8);
             this.btnDebug.Name = "btnDebug";
             this.btnDebug.Size = new System.Drawing.Size(94, 29);
             this.btnDebug.TabIndex = 2;
@@ -72,7 +72,7 @@ namespace ClipboardEx
             // 
             // btnClear
             // 
-            this.btnClear.Location = new System.Drawing.Point(129, 166);
+            this.btnClear.Location = new System.Drawing.Point(281, 43);
             this.btnClear.Name = "btnClear";
             this.btnClear.Size = new System.Drawing.Size(94, 29);
             this.btnClear.TabIndex = 3;
@@ -86,7 +86,7 @@ namespace ClipboardEx
             // lblWin
             // 
             this.lblWin.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.lblWin.Location = new System.Drawing.Point(14, 219);
+            this.lblWin.Location = new System.Drawing.Point(282, 84);
             this.lblWin.Name = "lblWin";
             this.lblWin.Size = new System.Drawing.Size(25, 25);
             this.lblWin.TabIndex = 6;
@@ -95,7 +95,7 @@ namespace ClipboardEx
             // lblLetter
             // 
             this.lblLetter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.lblLetter.Location = new System.Drawing.Point(45, 219);
+            this.lblLetter.Location = new System.Drawing.Point(313, 84);
             this.lblLetter.Name = "lblLetter";
             this.lblLetter.Size = new System.Drawing.Size(25, 25);
             this.lblLetter.TabIndex = 7;
@@ -104,7 +104,7 @@ namespace ClipboardEx
             // lblMatch
             // 
             this.lblMatch.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.lblMatch.Location = new System.Drawing.Point(76, 219);
+            this.lblMatch.Location = new System.Drawing.Point(344, 84);
             this.lblMatch.Name = "lblMatch";
             this.lblMatch.Size = new System.Drawing.Size(25, 25);
             this.lblMatch.TabIndex = 8;
@@ -112,7 +112,7 @@ namespace ClipboardEx
             // 
             // ClipboardEx
             // 
-            this.ClientSize = new System.Drawing.Size(1336, 490);
+            this.ClientSize = new System.Drawing.Size(806, 598);
             this.Controls.Add(this.lblMatch);
             this.Controls.Add(this.lblLetter);
             this.Controls.Add(this.lblWin);
@@ -123,6 +123,7 @@ namespace ClipboardEx
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "ClipboardEx";
             this.Text = "Hoo Haa";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ClipboardEx_FormClosing);
             this.ResumeLayout(false);
 
         }
