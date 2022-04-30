@@ -17,7 +17,6 @@ using NBagOfTricks;
 using NBagOfUis;
 
 // TODO persist clip data.
-// TODO edit settings.
 
 
 namespace ClipboardEx
@@ -269,7 +268,7 @@ namespace ClipboardEx
             _settings.Save();
         }
 
-        // TODO cleaning up?
+        // TODO Finalizer/Dispose?
         ///// <summary>
         ///// Override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources.
         ///// </summary>
@@ -404,91 +403,102 @@ namespace ClipboardEx
         {
             uint ret;
 
-            try
+            int retries = 5;
+
+            while(retries > 0)
             {
-                IDataObject? dobj = Clipboard.GetDataObject();
-
-                // Do something...
-                if (dobj is not null)
+                try
                 {
-                    // Info about the source window.
-                    IntPtr hwnd = NativeMethods.GetForegroundWindow();
-                    ret = NativeMethods.GetWindowThreadProcessId(hwnd, out uint processID);
-                    var procName = Process.GetProcessById((int)processID).ProcessName;
-                    var appPath = Process.GetProcessById((int)processID).MainModule!.FileName;
-                    var appName = Path.GetFileName(appPath);
-                    StringBuilder title = new(100);
-                    int res = NativeMethods.GetWindowText(hwnd, title, 100);
+                    IDataObject? dobj = Clipboard.GetDataObject();
 
-                    if(res > 0)
+                    // Do something...
+                    if (dobj is not null)
                     {
-                        LogMessage("INF", $"CbDraw COPY appName:{appName} procName:{procName} title:{title}");
+                        // Info about the source window.
+                        IntPtr hwnd = NativeMethods.GetForegroundWindow();
+                        ret = NativeMethods.GetWindowThreadProcessId(hwnd, out uint processID);
+                        var procName = Process.GetProcessById((int)processID).ProcessName;
+                        var appPath = Process.GetProcessById((int)processID).MainModule!.FileName;
+                        var appName = Path.GetFileName(appPath);
+                        StringBuilder title = new(100);
+                        int res = NativeMethods.GetWindowText(hwnd, title, 100);
 
-                        // Data type info.
-                        var dtypes = dobj.GetFormats();
-                        //var stypes = $"CbDraw dtypes:{string.Join(",", dtypes)}";
-                        //LogMessage("INF", stypes);
-
-                        Clip clip = new()
+                        if(res > 0)
                         {
-                            Ctype = ClipType.Other,
-                            Data = Clipboard.GetDataObject(),
-                            OrigApp = appName ?? "Unknown",
-                            OrigTitle = title.ToString()
-                        };
+                            LogMessage("INF", $"CbDraw COPY appName:{appName} procName:{procName} title:{title}");
 
-                        if (Clipboard.ContainsText())
-                        {
-                            // Is it rich text? dtypes: Rich Text Format, Rich Text Format Without Objects, RTF As Text.
-                            var ctype = ClipType.PlainText;
-                            foreach(var dt in dtypes)
+                            // Data type info.
+                            var dtypes = dobj.GetFormats();
+                            //var stypes = $"CbDraw dtypes:{string.Join(",", dtypes)}";
+                            //LogMessage("INF", stypes);
+
+                            Clip clip = new()
                             {
-                                if(dt.Contains("Rich Text Format") || dt.Contains("RTF"))
+                                Ctype = ClipType.Other,
+                                Data = Clipboard.GetDataObject(),
+                                OrigApp = appName ?? "Unknown",
+                                OrigTitle = title.ToString()
+                            };
+
+                            if (Clipboard.ContainsText())
+                            {
+                                // Is it rich text? dtypes: Rich Text Format, Rich Text Format Without Objects, RTF As Text.
+                                var ctype = ClipType.PlainText;
+                                foreach(var dt in dtypes)
                                 {
-                                    ctype = ClipType.RichText;
-                                    break;
+                                    if(dt.Contains("Rich Text Format") || dt.Contains("RTF"))
+                                    {
+                                        ctype = ClipType.RichText;
+                                        break;
+                                    }
                                 }
+
+                                clip.Ctype = ctype;
+                                clip.Text = Clipboard.GetText();
+                            }
+                            else if (Clipboard.ContainsFileDropList())
+                            {
+                                clip.Ctype = ClipType.FileList;
+                                clip.Text = string.Join(Environment.NewLine, Clipboard.GetFileDropList());
+                            }
+                            else if (Clipboard.ContainsImage())
+                            {
+                                clip.Ctype = ClipType.Image;
+                                clip.Bitmap = (Bitmap)Clipboard.GetImage();
+                            }
+                            else
+                            {
+                                // Something else, don't try to show it.
                             }
 
-                            clip.Ctype = ctype;
-                            clip.Text = Clipboard.GetText();
-                        }
-                        else if (Clipboard.ContainsFileDropList())
-                        {
-                            clip.Ctype = ClipType.FileList;
-                            clip.Text = string.Join(Environment.NewLine, Clipboard.GetFileDropList());
-                        }
-                        else if (Clipboard.ContainsImage())
-                        {
-                            clip.Ctype = ClipType.Image;
-                            clip.Bitmap = (Bitmap)Clipboard.GetImage();
+                            _clips.AddFirst(clip);
+                            UpdateClipDisplays();
                         }
                         else
                         {
-                            // Something else, don't try to show it.
+                            LogMessage("ERR", $"CbDraw res:{res}");
                         }
-
-                        _clips.AddFirst(clip);
-                        UpdateClipDisplays();
                     }
                     else
                     {
-                        LogMessage("ERR", $"CbDraw res:{res}");
+                        LogMessage("ERR", $"CbDraw GetDataObject() is null");
                     }
+
+                    retries = 0;
                 }
-                else
+                catch (ExternalException ex)
                 {
-                    LogMessage("ERR", $"CbDraw GetDataObject() is null");
+                    // TODO retry: Data could not be retrieved from the Clipboard.
+                    // This typically occurs when the Clipboard is being used by another process.
+                    LogMessage("ERR", $"CbDraw WM_DRAWCLIPBOARD ExternalException:{ex}");
+                    retries--;
+                    Sleep(50);
                 }
-            }
-            catch (ExternalException ex)
-            {
-                // TODO retry: Data could not be retrieved from the Clipboard. This typically occurs when the Clipboard is being used by another process.
-                LogMessage("ERR", $"CbDraw WM_DRAWCLIPBOARD ExternalException:{ex}");
-            }
-            catch (Exception ex)
-            {
-                LogMessage("ERR", $"CbDraw WM_DRAWCLIPBOARD Exception:{ex}");
+                catch (Exception ex)
+                {
+                    LogMessage("ERR", $"CbDraw WM_DRAWCLIPBOARD Exception:{ex}");
+                    retries = 0;
+                }
             }
 
             // Pass along to the next in the chain.
