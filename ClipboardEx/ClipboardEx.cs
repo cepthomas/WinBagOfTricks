@@ -585,10 +585,12 @@ namespace ClipboardEx
         }
 
         /// <summary>
-        /// Send paste to focus window. TODO but the focus is me now!
+        /// Send paste to focus window.
         /// </summary>
         public void DoPaste()
         {
+            // TODO but the focus is me now!
+            
             IntPtr hwnd = NativeMethods.GetForegroundWindow();
             uint tid = NativeMethods.GetWindowThreadProcessId(hwnd, out uint lpdwProcessId);
             var p = Process.GetProcessById((int)lpdwProcessId);
