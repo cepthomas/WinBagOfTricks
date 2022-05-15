@@ -73,7 +73,7 @@ namespace WinBagOfTricks
         /// </summary>
         void About_Click(object? sender, EventArgs e)
         {
-            Tools.MarkdownToHtml(File.ReadAllLines(@".\README.md").ToList(), "lightcyan", "helvetica", true);
+            MiscUtils.ShowReadme("WinBagOfTricks");
         }
 
         /// <summary>

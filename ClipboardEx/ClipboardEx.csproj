@@ -6,7 +6,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>ClipboardEx</AssemblyName>
     <Deterministic>False</Deterministic>
-    <Version>1.2.3</Version>
+    <Version>$([System.DateTime]::UtcNow.ToString(yy.MM.dd))</Version> 
     <Description>WinBagOfTricks clipboard application</Description>
     <Copyright>MIT License</Copyright>
     <OutputPath>bin\</OutputPath>
