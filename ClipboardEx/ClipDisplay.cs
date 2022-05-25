@@ -44,15 +44,7 @@ namespace ClipboardEx
         public ClipDisplay()
         {
             InitializeComponent();
-        }
 
-        /// <summary>
-        /// Init stuff.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ClipDisplay_Load(object sender, EventArgs e)
-        {
             rtbText.Dock = DockStyle.Fill;
             rtbText.ScrollBars = RichTextBoxScrollBars.Horizontal;
             rtbText.WordWrap = false;

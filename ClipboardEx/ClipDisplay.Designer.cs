@@ -62,7 +62,6 @@ namespace ClipboardEx
             this.Controls.Add(this.rtbText);
             this.Name = "ClipDisplay";
             this.Size = new System.Drawing.Size(255, 87);
-            this.Load += new System.EventHandler(this.ClipDisplay_Load);
             ((System.ComponentModel.ISupportInitialize)(this.picImage)).EndInit();
             this.ResumeLayout(false);
 

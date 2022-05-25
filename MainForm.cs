@@ -33,13 +33,7 @@ namespace WinBagOfTricks
         public MainForm()
         {
             InitializeComponent();
-        }
 
-        /// <summary>
-        /// Initialize form controls.
-        /// </summary>
-        void MainForm_Load(object? sender, EventArgs e)
-        {
             // Toolbar configs.
             btnLoop.Checked = false;
 
