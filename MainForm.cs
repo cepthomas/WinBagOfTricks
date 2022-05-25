@@ -55,7 +55,7 @@ namespace WinBagOfTricks
         /// <summary>
         /// Clean up on shutdown. Dispose() will get the rest.
         /// </summary>
-        void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
+        protected override void OnFormClosing(FormClosingEventArgs e)
         {
             //SaveSettings();
         }

@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
@@ -51,7 +52,7 @@ namespace ClipboardEx
 
         #region Fields
         /// <summary>The settings.</summary>
-        UserSettings _settings;
+        readonly UserSettings _settings;
 
         /// <summary>Next in line for clipboard  notification.</summary>
         IntPtr _nextCb = IntPtr.Zero;
@@ -79,8 +80,8 @@ namespace ClipboardEx
         #endregion
 
         #region Debug Stuff
-        /// <summary>Debug.</summary>
-        int _ticks = 0;
+        ///// <summary>Debug.</summary>
+        //int _ticks = 0;
         #endregion
 
         #region Constants
@@ -240,17 +241,15 @@ namespace ClipboardEx
             };
 
             // Init LL keyboard hook.
-            using (Process process = Process.GetCurrentProcess())
-            using (ProcessModule? module = process.MainModule)
-            {
-                // hMod: Handle to the DLL containing the hook procedure pointed to by the lpfn parameter. The hMod parameter must be set
-                //   to NULL if the dwThreadId parameter specifies a thread created by the current process and if the hook procedure is
-                //   within the code associated with the current process.
-                // dwThreadId: Specifies the identifier of the thread with which the hook procedure is to be associated.If this parameter is
-                //   zero, the hook procedure is associated with all existing threads running in the same desktop as the calling thread.
-                IntPtr hModule = NativeMethods.GetModuleHandle(module!.ModuleName!);
-                _hhook = NativeMethods.SetWindowsHookEx(HookType.WH_KEYBOARD_LL, KeyboardHookProc, hModule, 0);
-            }
+            using Process process = Process.GetCurrentProcess();
+            using ProcessModule? module = process.MainModule;
+            // hMod: Handle to the DLL containing the hook procedure pointed to by the lpfn parameter. The hMod parameter must be set
+            //   to NULL if the dwThreadId parameter specifies a thread created by the current process and if the hook procedure is
+            //   within the code associated with the current process.
+            // dwThreadId: Specifies the identifier of the thread with which the hook procedure is to be associated.If this parameter is
+            //   zero, the hook procedure is associated with all existing threads running in the same desktop as the calling thread.
+            IntPtr hModule = NativeMethods.GetModuleHandle(module!.ModuleName!);
+            _hhook = NativeMethods.SetWindowsHookEx(HookType.WH_KEYBOARD_LL, KeyboardHookProc, hModule, 0);
 
             // Paste test.
             //_ticks = 5;
@@ -261,9 +260,8 @@ namespace ClipboardEx
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="sender"></param>
         /// <param name="e"></param>
-        void ClipboardEx_FormClosing(object sender, FormClosingEventArgs e)
+        protected override void OnFormClosing(FormClosingEventArgs e)
         {
             _settings.Save();
         }
@@ -492,7 +490,7 @@ namespace ClipboardEx
                     // This typically occurs when the Clipboard is being used by another process.
                     LogMessage("ERR", $"CbDraw WM_DRAWCLIPBOARD ExternalException:{ex}");
                     retries--;
-                    Sleep(50);
+                    Thread.Sleep(50);
                 }
                 catch (Exception ex)
                 {

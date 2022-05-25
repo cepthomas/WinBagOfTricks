@@ -123,7 +123,6 @@ namespace ClipboardEx
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
             this.Name = "ClipboardEx";
             this.Text = "Hoo Haa";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ClipboardEx_FormClosing);
             this.ResumeLayout(false);
 
         }
