@@ -11,7 +11,6 @@ using NBagOfTricks;
 using NBagOfUis;
 
 
-
 namespace TrayEx
 {
     /// <summary>Framework for running application as a tray app.</summary>
@@ -23,6 +22,7 @@ namespace TrayEx
         readonly Container _components = new();
         readonly NotifyIcon _notifyIcon;
         readonly Timer _timer = new();
+        readonly List<string> _messages = new();
         #endregion
 
         #region Lifecycle
@@ -73,7 +73,7 @@ namespace TrayEx
         /// <param name="e"></param>
         private void ApplicationExit_Handler(object? sender, EventArgs e)
         {
-            LogMessage("INF", $"ApplicationExit_Handler()");
+            Tell($"ApplicationExit_Handler()");
 
             _notifyIcon.ContextMenuStrip.Dispose();
             _notifyIcon.Visible = false;
@@ -90,7 +90,7 @@ namespace TrayEx
         /// <param name="e"></param>
         void ThreadExit_Handler(object? sender, EventArgs e)
         {
-            LogMessage("INF", $"ThreadExit_Handler()");
+            Tell($"ThreadExit_Handler()");
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace TrayEx
         /// </summary>
         protected override void ExitThreadCore()
         {
-            LogMessage("INF", $"ExitThreadCore()");
+            Tell($"ExitThreadCore()");
             base.ExitThreadCore();
         }
         #endregion
@@ -124,7 +124,7 @@ namespace TrayEx
         /// <param name="e"></param>
         void Nicon_MouseClick(object? sender, MouseEventArgs e)
         {
-            LogMessage("INF", $"You clicked icon:{e.Button}");
+            Tell($"You clicked icon:{e.Button}");
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace TrayEx
         /// <param name="e"></param>
         void Nicon_MouseDoubleClick(object? sender, MouseEventArgs e)
         {
-            LogMessage("INF", $"You double clicked icon:{e}");
+            Tell($"You double clicked icon:{e}");
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace TrayEx
         void Menu_Click(object? sender, EventArgs e)
         {
             var mi = (ToolStripMenuItem)sender!;
-            LogMessage("INF", $"You clicked menu:{mi.Text}");
+            Tell($"You clicked menu:{mi.Text}");
 
             switch (mi.Text)
             {
@@ -159,7 +159,7 @@ namespace TrayEx
 
                 case "close":
                     _notifyIcon.Visible = false; // should remove lingering tray icon
-                    LogMessage("INF", $"call ExitThread()");
+                    Tell($"call ExitThread()");
                     ExitThread();
                     break;
             }
@@ -187,8 +187,8 @@ namespace TrayEx
                 BorderStyle = BorderStyle.FixedSingle,
                 Location = new(0, 70),
                 Size = new(565, 380)
-
             };
+            _messages.ForEach(m => rtbInfo.AppendText(m));
             f.Controls.Add(rtbInfo);
 
             Button btnKickMe = new()
@@ -218,14 +218,11 @@ namespace TrayEx
         /// <summary>
         /// Just for debugging.
         /// </summary>
-        /// <param name="cat"></param>
         /// <param name="msg"></param>
-        void LogMessage(string cat, string msg)
+        void Tell(string msg)
         {
-            int catSize = 3;
-            cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
-            string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} {msg}{Environment.NewLine}";
-            Debug.WriteLine(s);
+            string s = $"{DateTime.Now:mm\\:ss\\.fff} {msg}{Environment.NewLine}";
+            _messages.Add(s);
         }
 
         /// <summary>

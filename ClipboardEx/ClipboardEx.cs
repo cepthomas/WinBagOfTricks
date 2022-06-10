@@ -79,11 +79,6 @@ namespace ClipboardEx
         bool _disposed;
         #endregion
 
-        #region Debug Stuff
-        ///// <summary>Debug.</summary>
-        //int _ticks = 0;
-        #endregion
-
         #region Constants
         const int MAX_CLIPS = 10;
         // Windows messages.
@@ -218,7 +213,7 @@ namespace ClipboardEx
 
             if(_settings.Debug)
             {
-                rtbText.LoadFile(@"C:\Dev\repos\WinBagOfTricks\ClipboardEx\ex.rtf");
+                rtbText.LoadFile(@"..\..\\ex.rtf");
             }
 
             btnClear.Click += (_, __) => tvInfo.Clear();
@@ -264,6 +259,7 @@ namespace ClipboardEx
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             _settings.Save();
+            base.OnFormClosing(e);
         }
 
         // TODO Finalizer/Dispose?
@@ -272,18 +268,18 @@ namespace ClipboardEx
         ///// </summary>
         //~ClipboardEx()
         //{
-        //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method.
-        //    Dispose(false);
+        //   // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method.
+        //   Dispose(false);
         //}
         ///// <summary>
         ///// Boilerplate.
         ///// </summary>
         //public new void Dispose()
         //{
-        //    // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method.
-        //    Dispose(true);
-        //    GC.SuppressFinalize(this);
-        //    base.Dispose();
+        //   // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method.
+        //   Dispose(true);
+        //   GC.SuppressFinalize(this);
+        //   base.Dispose();
         //}
 
         /// <summary>
@@ -376,13 +372,13 @@ namespace ClipboardEx
             if (_clipboardMessages is not null && _clipboardMessages.ContainsKey(m.Msg))
             {
                 MsgSpec sp = _clipboardMessages[m.Msg];
-                LogMessage("DBG", $"WndProc message {sp.Name} HWnd:{m.HWnd} Msg:{m.Msg} WParam:{m.WParam} LParam:{m.LParam} ");
+                Tell($"WndProc message {sp.Name} HWnd:{m.HWnd} Msg:{m.Msg} WParam:{m.WParam} LParam:{m.LParam} ");
                 
                 // Call handler.
                 ret = sp.Handler(m);
                 if (ret > 0)
                 {
-                    LogMessage("ERR", $"WndProc handler {sp.Name} ret:0X{ret:X}");
+                    Tell($"ERR WndProc handler {sp.Name} ret:0X{ret:X}");
                 }
             }
             else
@@ -423,12 +419,12 @@ namespace ClipboardEx
 
                         if(res > 0)
                         {
-                            LogMessage("INF", $"CbDraw COPY appName:{appName} procName:{procName} title:{title}");
+                            Tell($"CbDraw COPY appName:{appName} procName:{procName} title:{title}");
 
                             // Data type info.
                             var dtypes = dobj.GetFormats();
                             //var stypes = $"CbDraw dtypes:{string.Join(",", dtypes)}";
-                            //LogMessage("INF", stypes);
+                            //Tell("INF", stypes);
 
                             Clip clip = new()
                             {
@@ -474,12 +470,12 @@ namespace ClipboardEx
                         }
                         else
                         {
-                            LogMessage("ERR", $"CbDraw res:{res}");
+                            Tell($"ERR CbDraw res:{res}");
                         }
                     }
                     else
                     {
-                        LogMessage("ERR", $"CbDraw GetDataObject() is null");
+                        Tell($"ERR CbDraw GetDataObject() is null");
                     }
 
                     retries = 0;
@@ -488,13 +484,13 @@ namespace ClipboardEx
                 {
                     // TODO retry: Data could not be retrieved from the Clipboard.
                     // This typically occurs when the Clipboard is being used by another process.
-                    LogMessage("ERR", $"CbDraw WM_DRAWCLIPBOARD ExternalException:{ex}");
+                    Tell($"ERR CbDraw WM_DRAWCLIPBOARD ExternalException:{ex}");
                     retries--;
                     Thread.Sleep(50);
                 }
                 catch (Exception ex)
                 {
-                    LogMessage("ERR", $"CbDraw WM_DRAWCLIPBOARD Exception:{ex}");
+                    Tell($"ERR CbDraw WM_DRAWCLIPBOARD Exception:{ex}");
                     retries = 0;
                 }
             }
@@ -558,7 +554,7 @@ namespace ClipboardEx
                 switch (e.EventType)
                 {
                     case ClipDisplay.ClipEventType.Click:
-                        LogMessage("DBG", "!!! Got a click");
+                        Tell("!!! Got a click");
                         int i = cd.Id;
                         if (i >= 0 && i < _clips.Count)
                         {
@@ -592,7 +588,7 @@ namespace ClipboardEx
             IntPtr hwnd = NativeMethods.GetForegroundWindow();
             uint tid = NativeMethods.GetWindowThreadProcessId(hwnd, out uint lpdwProcessId);
             var p = Process.GetProcessById((int)lpdwProcessId);
-            LogMessage("DBG", $"FileName:{p.MainModule!.FileName} pid:{ lpdwProcessId} tid:{tid}");
+            Tell($"FileName:{p.MainModule!.FileName} pid:{ lpdwProcessId} tid:{tid}");
 
             // This does work. Virtual keycodes from https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
             byte vkey = 0x56; // 'v'
@@ -620,7 +616,7 @@ namespace ClipboardEx
             {
                 Keys key = (Keys)lParam.vkCode;
 
-                LogMessage("DBG", $"KeyboardHookProc code:{code} wParam:{wParam} key:{key} scancode:{lParam.scanCode}");
+                Tell($"KeyboardHookProc code:{code} wParam:{wParam} key:{key} scancode:{lParam.scanCode}");
 
                 if (code >= 0)
                 {
@@ -671,13 +667,10 @@ namespace ClipboardEx
         /// <summary>
         /// Just for debugging.
         /// </summary>
-        /// <param name="cat"></param>
         /// <param name="msg"></param>
-        void LogMessage(string cat, string msg)
+        void Tell(string msg)
         {
-            int catSize = 3;
-            cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
-            string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} {msg}";
+            string s = $"{DateTime.Now:mm\\:ss\\.fff} {msg}";
             tvInfo.AppendLine(s);
         }
         #endregion

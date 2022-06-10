@@ -56,7 +56,7 @@ namespace JumpListEx
             if (TaskbarManager.IsPlatformSupported)
             {
                 var args = Environment.GetCommandLineArgs().ToList();
-                LogMessage("INF", $"args:{args}");
+                Tell($"args:{args}");
 
                 StartPosition = FormStartPosition.Manual;
                 Location = new Point(200, 200);
@@ -66,7 +66,7 @@ namespace JumpListEx
             }
             else
             {
-                LogMessage("ERR", "Platform not supported");
+                Tell("ERR Platform not supported");
                 MessageBox.Show("Your OS is no good!");
                 Environment.Exit(1);
             }
@@ -148,13 +148,10 @@ namespace JumpListEx
         /// <summary>
         /// Just for debugging.
         /// </summary>
-        /// <param name="cat"></param>
         /// <param name="msg"></param>
-        void LogMessage(string cat, string msg)
+        void Tell(string msg)
         {
-            int catSize = 3;
-            cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
-            string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} {msg}{Environment.NewLine}";
+            string s = $"{DateTime.Now:mm\\:ss\\.fff} {msg}{Environment.NewLine}";
             rtbInfo.AppendText(s);
         }
     }

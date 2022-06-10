@@ -58,6 +58,7 @@ namespace WinBagOfTricks
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             //SaveSettings();
+            base.OnFormClosing(e);
         }
         #endregion
 
