@@ -38,14 +38,11 @@ namespace WinBagOfTricks
             btnLoop.Checked = false;
 
             // The text output.
+            txtViewer.Font = new("Lucida Console", 9);
             txtViewer.WordWrap = true;
             txtViewer.BackColor = Color.Cornsilk;
             txtViewer.Colors.Add("ERR", Color.LightPink);
             txtViewer.Colors.Add("WRN", Color.Plum);
-            txtViewer.Font = new("Lucida Console", 9);
-
-            // Check for "config_taskbar" then do something...
-            LogMessage("INF", $"args: {string.Join(" ", Environment.GetCommandLineArgs())}");
 
             InitNavigator();
 
@@ -69,24 +66,6 @@ namespace WinBagOfTricks
         void About_Click(object? sender, EventArgs e)
         {
             MiscUtils.ShowReadme("WinBagOfTricks");
-        }
-
-        /// <summary>
-        /// Something you should know.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="ea"></param>
-        void LogMessage(string cat, string msg)
-        {
-            int catSize = 3;
-            cat = cat.Length >= catSize ? cat.Left(catSize) : cat.PadRight(catSize);
-
-            // May come from a different thread.
-            this.InvokeIfRequired(_ =>
-            {
-                string s = $"{DateTime.Now:mm\\:ss\\.fff} {cat} {msg}";
-                txtViewer.AppendLine(s);
-            });
         }
         #endregion
 
