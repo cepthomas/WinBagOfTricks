@@ -31,7 +31,7 @@ namespace ClipboardEx
     /// - Handles all interactions at the Clipboard.XXX() API level.
     /// - Hooks keyboard to intercept magic paste key.
     /// </summary>
-    public partial class ClipboardEx : Form
+    public sealed partial class ClipboardEx : Form
     {
         #region Types
         /// <summary>One handled clipboard API message.</summary>
@@ -262,25 +262,23 @@ namespace ClipboardEx
             base.OnFormClosing(e);
         }
 
-        // TODO Finalizer/Dispose?
-        ///// <summary>
-        ///// Override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources.
-        ///// </summary>
-        //~ClipboardEx()
-        //{
-        //   // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method.
-        //   Dispose(false);
-        //}
-        ///// <summary>
-        ///// Boilerplate.
-        ///// </summary>
-        //public new void Dispose()
-        //{
-        //   // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method.
-        //   Dispose(true);
-        //   GC.SuppressFinalize(this);
-        //   base.Dispose();
-        //}
+        /// <summary>
+        /// Override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources.
+        /// </summary>
+        ~ClipboardEx()
+        {
+            Dispose(false);
+        }
+
+        /// <summary>
+        /// Boilerplate.
+        /// </summary>
+        public new void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+            base.Dispose();
+        }
 
         /// <summary>
         /// Boilerplate.
@@ -291,17 +289,19 @@ namespace ClipboardEx
             {
                 if (disposing)
                 {
+                    // called via myClass.Dispose(). 
+                    // OK to use any private object references
                     // Dispose managed state (managed objects).
                     components.Dispose();
                 }
 
-                // Free unmanaged resources (unmanaged objects) and override finalizer.
+                // Release unmanaged resources.
                 // Set large fields to null.
                 NativeMethods.ChangeClipboardChain(Handle, _nextCb);
                 NativeMethods.UnhookWindowsHookEx(_hhook);
-            }
 
-            _disposed = true;
+                _disposed = true;
+            }
 
             base.Dispose(disposing);
         }
