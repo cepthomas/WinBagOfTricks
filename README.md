@@ -9,7 +9,7 @@ A place to play.
 - A simple taskbar/jumplist manager.
 
 
-Requires VS2019 and .NET5.
+Requires VS2019 and .NET6.
 
 
 # Third Party
