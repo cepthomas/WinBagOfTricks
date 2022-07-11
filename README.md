@@ -1,6 +1,6 @@
 # WinBagOfTricks
 
-A place to play.
+A place to play with some Windows stuff.
 
 ![logo](felix.png)
 
