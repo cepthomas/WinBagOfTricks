@@ -41,8 +41,8 @@ namespace WinBagOfTricks
             txtViewer.Font = new("Lucida Console", 9);
             txtViewer.WordWrap = true;
             txtViewer.BackColor = Color.Cornsilk;
-            txtViewer.Colors.Add("ERR", Color.LightPink);
-            txtViewer.Colors.Add("WRN", Color.Plum);
+            txtViewer.MatchColors.Add("ERR", Color.LightPink);
+            txtViewer.MatchColors.Add("WRN", Color.Plum);
 
             InitNavigator();
 
