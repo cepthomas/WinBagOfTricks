@@ -22,11 +22,12 @@ namespace ClipboardEx
         /// <summary>For owner use.</summary>
         public int Id { get; set; } = -1;
 
-        #region Event Stuff
-        public enum ClipEventType { Click, DoubleClick }
-
+        #region Events
         /// <summary>Tell the boss.</summary>
         public event EventHandler<ClipEventArgs>? ClipEvent;
+
+        public enum ClipEventType { Click, DoubleClick }
+
         public class ClipEventArgs : EventArgs
         {
             public ClipEventType EventType { get; private set; } = ClipEventType.Click;
