@@ -11,8 +11,6 @@ using System.Drawing.Design;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using NBagOfTricks;
-using NBagOfUis;
-
 
 
 namespace WinBagOfTricks
@@ -44,8 +42,6 @@ namespace WinBagOfTricks
             txtViewer.MatchColors.Add("ERR", Color.LightPink);
             txtViewer.MatchColors.Add("WRN", Color.Plum);
 
-            InitNavigator();
-
             Text = $"WinBagOfTricks {MiscUtils.GetVersionString()} - No file loaded";
         }
 
@@ -68,32 +64,6 @@ namespace WinBagOfTricks
             MiscUtils.ShowReadme("WinBagOfTricks");
         }
         #endregion
-
-        /// <summary>
-        /// Initialize tree from user settings.
-        /// </summary>
-        void InitNavigator()
-        {
-            ftreeLeft.FilterExts.Clear();
-            ftreeLeft.FilterExts.Add(".txt .cs");
-
-            ftreeLeft.RootDirs.Clear();
-            ftreeLeft.RootDirs.Add(@"C:\Dev");
-            ftreeLeft.SingleClickSelect = true;// or?
-
-            ftreeLeft.Init();
-        }
-
-        /// <summary>
-        /// Tree has seleccted a file.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="fn"></param>
-        void FtreeLeft_FileSelectedEvent(object? sender, string fn)
-        {
-            //OpenFile(fn);
-            //_fn = fn;
-        }
 
         /// <summary>
         /// 
