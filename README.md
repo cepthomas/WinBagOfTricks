@@ -7,9 +7,7 @@ A place to play with some Windows stuff.
 - Tray application demo.
 - Clipboard with multiple entries.
 - A simple taskbar/jumplist manager.
-
-
-Requires VS2022 and .NET6.
+- Requires VS2022 and .NET6.
 
 
 # External Components
