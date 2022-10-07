@@ -176,7 +176,7 @@ namespace ClipboardEx
             InitializeComponent();
 
             string appDir = MiscUtils.GetAppDataDir("ClipboardEx", "Ephemera");
-            _settings = (UserSettings)Settings.Load(appDir, typeof(UserSettings));
+            _settings = (UserSettings)SettingsCore.Load(appDir, typeof(UserSettings));
 
             Visible = _settings.Debug;
 
@@ -677,7 +677,7 @@ namespace ClipboardEx
     }
 
     [Serializable]
-    public sealed class UserSettings : Settings
+    public sealed class UserSettings : SettingsCore
     {
         #region Persisted editable properties
         [DisplayName("Control Color")]
