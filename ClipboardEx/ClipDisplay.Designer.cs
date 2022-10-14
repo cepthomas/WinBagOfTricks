@@ -1,5 +1,5 @@
 ﻿
-namespace ClipboardEx
+namespace Ephemera.ClipboardEx
 {
     partial class ClipDisplay
     {

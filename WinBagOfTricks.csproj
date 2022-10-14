@@ -4,7 +4,8 @@
         <OutputType>WinExe</OutputType>
         <TargetFramework>net6.0-windows</TargetFramework>
         <UseWindowsForms>true</UseWindowsForms>
-        <AssemblyName>WinBagOfTricks</AssemblyName>
+        <AssemblyName>Ephemera.WinBagOfTricks</AssemblyName>
+        <RootNamespace>Ephemera.WinBagOfTricks</RootNamespace>
         <Deterministic>False</Deterministic>
         <Version>$([System.DateTime]::UtcNow.ToString(yy.MM.dd))</Version>
         <Description>WinBagOfTricks application</Description>
@@ -14,24 +15,21 @@
         <WarningLevel>4</WarningLevel>
         <NoWarn>CS1591;CA1822</NoWarn> 
         <Nullable>enable</Nullable>
-        <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>-->
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <SatelliteResourceLanguages>none</SatelliteResourceLanguages>
         <ApplicationIcon>Resources\Poulpo.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
         <Compile Remove="ClipboardEx\**" />
-        <Compile Remove="clipboard_helper\**" />
         <Compile Remove="JumpListEx\**" />
         <Compile Remove="lib\**" />
         <Compile Remove="TrayEx\**" />
         <EmbeddedResource Remove="ClipboardEx\**" />
-        <EmbeddedResource Remove="clipboard_helper\**" />
         <EmbeddedResource Remove="JumpListEx\**" />
         <EmbeddedResource Remove="lib\**" />
         <EmbeddedResource Remove="TrayEx\**" />
         <None Remove="ClipboardEx\**" />
-        <None Remove="clipboard_helper\**" />
         <None Remove="JumpListEx\**" />
         <None Remove="lib\**" />
         <None Remove="TrayEx\**" />
@@ -42,11 +40,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Reference Include="NBagOfTricks">
-            <HintPath>lib\NBagOfTricks.dll</HintPath>
+        <Reference Include="Ephemera.NBagOfTricks">
+            <HintPath>lib\Ephemera.NBagOfTricks.dll</HintPath>
         </Reference>
-        <Reference Include="NBagOfUis">
-            <HintPath>lib\NBagOfUis.dll</HintPath>
+        <Reference Include="Ephemera.NBagOfUis">
+            <HintPath>lib\Ephemera.NBagOfUis.dll</HintPath>
         </Reference>
     </ItemGroup>
 

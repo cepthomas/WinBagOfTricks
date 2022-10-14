@@ -10,11 +10,11 @@ using System.IO;
 using System.Reflection;
 using Microsoft.WindowsAPICodePack.Taskbar;
 using Microsoft.WindowsAPICodePack.Shell;
-using NBagOfTricks;
-using NBagOfUis;
+using Ephemera.NBagOfTricks;
+using Ephemera.NBagOfUis;
 
 
-namespace JumpListEx
+namespace Ephemera.JumpListEx
 {
     public partial class JumpListEx : Form
     {

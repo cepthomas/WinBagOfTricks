@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 
-namespace WinBagOfTricks
+namespace Ephemera.WinBagOfTricks
 {
     static class Program
     {

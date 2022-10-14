@@ -10,10 +10,10 @@ using System.Diagnostics;
 using System.Drawing.Design;
 using System.Text.Json.Serialization;
 using System.Text.Json;
-using NBagOfTricks;
+using Ephemera.NBagOfTricks;
 
 
-namespace WinBagOfTricks
+namespace Ephemera.WinBagOfTricks
 {
     /// <summary>
     /// Actually more of a test host.

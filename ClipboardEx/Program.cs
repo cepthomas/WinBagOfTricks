@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace ClipboardEx
+namespace Ephemera.ClipboardEx
 {
     /// <summary>Framework for running as a tray app.</summary>
     static class Program

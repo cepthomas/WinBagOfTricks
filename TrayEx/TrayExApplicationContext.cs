@@ -7,11 +7,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using NBagOfTricks;
-using NBagOfUis;
+using Ephemera.NBagOfTricks;
+using Ephemera.NBagOfUis;
 
 
-namespace TrayEx
+namespace Ephemera.TrayEx
 {
     /// <summary>Framework for running application as a tray app.</summary>
     public class TrayExApplicationContext : ApplicationContext

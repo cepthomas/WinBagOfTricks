@@ -14,13 +14,13 @@ using System.IO;
 using System.Drawing.Design;
 using System.Text.Json.Serialization;
 using System.Text.Json;
-using NBagOfTricks;
-using NBagOfUis;
+using Ephemera.NBagOfTricks;
+using Ephemera.NBagOfUis;
 
 // TODO persist clip data.
 
 
-namespace ClipboardEx
+namespace Ephemera.ClipboardEx
 {
     #region Types
     /// <summary>For internal management.</summary>

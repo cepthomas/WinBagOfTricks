@@ -1,4 +1,4 @@
-﻿namespace WinBagOfTricks
+﻿namespace Ephemera.WinBagOfTricks
 {
     partial class MainForm
     {
@@ -57,7 +57,7 @@
             // fileDropDownButton
             // 
             this.fileDropDownButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.fileDropDownButton.Image = global::WinBagOfTricks.Properties.Resources.glyphicons_37_file;
+            this.fileDropDownButton.Image = global::Ephemera.WinBagOfTricks.Properties.Resources.glyphicons_37_file;
             this.fileDropDownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.fileDropDownButton.Name = "fileDropDownButton";
             this.fileDropDownButton.Size = new System.Drawing.Size(34, 24);
@@ -67,7 +67,7 @@
             // btnSettings
             // 
             this.btnSettings.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnSettings.Image = global::WinBagOfTricks.Properties.Resources.glyphicons_137_cogwheel;
+            this.btnSettings.Image = global::Ephemera.WinBagOfTricks.Properties.Resources.glyphicons_137_cogwheel;
             this.btnSettings.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnSettings.Name = "btnSettings";
             this.btnSettings.Size = new System.Drawing.Size(29, 24);
@@ -77,7 +77,7 @@
             // btnAbout
             // 
             this.btnAbout.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnAbout.Image = global::WinBagOfTricks.Properties.Resources.glyphicons_195_question_sign;
+            this.btnAbout.Image = global::Ephemera.WinBagOfTricks.Properties.Resources.glyphicons_195_question_sign;
             this.btnAbout.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnAbout.Name = "btnAbout";
             this.btnAbout.Size = new System.Drawing.Size(29, 24);
@@ -89,7 +89,7 @@
             // 
             this.btnLoop.CheckOnClick = true;
             this.btnLoop.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnLoop.Image = global::WinBagOfTricks.Properties.Resources.glyphicons_82_refresh;
+            this.btnLoop.Image = global::Ephemera.WinBagOfTricks.Properties.Resources.glyphicons_82_refresh;
             this.btnLoop.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnLoop.Name = "btnLoop";
             this.btnLoop.Size = new System.Drawing.Size(29, 24);

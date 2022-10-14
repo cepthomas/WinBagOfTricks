@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace TrayEx
+namespace Ephemera.TrayEx
 {
     /// <summary>Framework for running as a tray app.</summary>
     static class Program
