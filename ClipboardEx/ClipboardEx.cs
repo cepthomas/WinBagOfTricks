@@ -163,7 +163,7 @@ namespace Ephemera.ClipboardEx
             WH_MOUSE_LL = 14
         }
 
-        /// <summaryDefines the callback for the hook. Apparently you can have multiple typed overloads.</summary>
+        /// <summary>Defines the callback for the hook. Apparently you can have multiple typed overloads.</summary>
         internal delegate int HookProc(int code, int wParam, ref KBDLLHOOKSTRUCT lParam);
         #endregion
 

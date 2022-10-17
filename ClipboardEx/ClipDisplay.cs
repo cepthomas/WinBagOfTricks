@@ -69,7 +69,7 @@ namespace Ephemera.ClipboardEx
         /// <summary>
         /// Text specific setup.
         /// </summary>
-        /// <param name="stype"></param>
+        /// <param name="ctype"></param>
         /// <param name="text"></param>
         public void SetText(ClipType ctype, string text)
         {
@@ -134,7 +134,6 @@ namespace Ephemera.ClipboardEx
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="text"></param>
         public void SetEmpty()
         {
             picImage.Hide();
