@@ -188,7 +188,7 @@ namespace Ephemera.ClipboardEx
                 ClipDisplay cd = new() { Location = new Point(x, y), Id = i };
                 _displays.Add(cd);
                 Controls.Add(cd);
-                cd.ClipEvent += Cd_ClipEvent;
+                cd.ClipRequest += Cd_ClipRequest;
                 //x = cd.Right + 5;
                 y = cd.Bottom + 5;
             }
@@ -543,7 +543,7 @@ namespace Ephemera.ClipboardEx
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Cd_ClipEvent(object? sender, ClipDisplay.ClipEventArgs e)
+        void Cd_ClipRequest(object? sender, ClipDisplay.ClipEventArgs e)
         {
             if (sender is not null)
             {
@@ -553,7 +553,7 @@ namespace Ephemera.ClipboardEx
 
                 switch (e.EventType)
                 {
-                    case ClipDisplay.ClipEventType.Click:
+                    case ClipDisplay.ClipRequestType.Click:
                         Tell("!!! Got a click");
                         int i = cd.Id;
                         if (i >= 0 && i < _clips.Count)

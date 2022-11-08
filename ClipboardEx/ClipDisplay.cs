@@ -24,14 +24,14 @@ namespace Ephemera.ClipboardEx
 
         #region Events
         /// <summary>Tell the boss.</summary>
-        public event EventHandler<ClipEventArgs>? ClipEvent;
+        public event EventHandler<ClipEventArgs>? ClipRequest;
 
-        public enum ClipEventType { Click, DoubleClick }
+        public enum ClipRequestType { Click, DoubleClick }
 
         public class ClipEventArgs : EventArgs
         {
-            public ClipEventType EventType { get; private set; } = ClipEventType.Click;
-            public ClipEventArgs(ClipEventType ce)
+            public ClipRequestType EventType { get; private set; } = ClipRequestType.Click;
+            public ClipEventArgs(ClipRequestType ce)
             {
                 EventType = ce;
             }
@@ -63,7 +63,7 @@ namespace Ephemera.ClipboardEx
         /// <param name="e"></param>
         void Control_Click(object? sender, EventArgs e)
         {
-            ClipEvent?.Invoke(this, new ClipEventArgs(ClipEventType.Click));
+            ClipRequest?.Invoke(this, new ClipEventArgs(ClipRequestType.Click));
         }
 
         /// <summary>
