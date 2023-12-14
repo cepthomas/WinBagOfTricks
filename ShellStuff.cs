@@ -13,12 +13,95 @@ using Ephemera.NBagOfTricks;
 using System.Drawing;
 
 
+// https://www.codeproject.com/Articles/15059/C-File-Browser
+
+// HKEY_CLASSES_ROOT\Directory\Background\shell
+
+/*
+
+** tool:  https://github.com/ikas-mc/ContextMenuForWindows11
+a reg:  https://www.groovypost.com/howto/add-any-program-windows-context-menu/
+remove: https://www.makeuseof.com/remove-new-context-menu-items-windows-10/
+add:  https://www.makeuseof.com/windows-11-add-shortcut-desktop-context-menu
+
+
+https://www.pinvoke.net/default.aspx/advapi32.RegGetValue
+
+https://learn.microsoft.com/en-us/dotnet/api/microsoft.win32.registry?view=net-8.0
+
+https://learn.microsoft.com/en-us/windows/win32/api/shobjidl_core/nn-shobjidl_core-icontextmenu
+
+
+advapi32
+1: RegGetValue
+        [DllImport("Advapi32.dll", EntryPoint = "RegGetValueW", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern LONG RegGetValue(
+        [DllImport("Advapi32.dll", EntryPoint = "RegGetValueW", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern Int32 RegGetValue(
+Declare Function RegGetValue Lib "advapi32.dll" (TODO) As TODO
+    /// https://docs.microsoft.com/en-us/windows/desktop/api/Winreg/nf-winreg-reggetvaluea
+        Api.advapi32.RegGetValue(
+        Api.advapi32.RegGetValue(
+Documentation
+[RegGetValue] on MSDN
+
+Summary
+Retrieves the type and data for the specified registry value
+C# Signature:
+        /* Retrieves the type and data for the specified registry value. - Original documented types 
+        [DllImport("Advapi32.dll", EntryPoint = "RegGetValueW", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern LONG RegGetValue(
+        SafeRegistryHandle hkey,
+        string lpSubKey,
+        string lpValue,
+        EnumLib.RFlags dwFlags,
+        out EnumLib.RType pdwType,
+        IntPtr pvData,
+        ref DWORD pcbData);
+
+        /* Retrieves the type and data for the specified registry value. - C# Compliant types
+        [DllImport("Advapi32.dll", EntryPoint = "RegGetValueW", CharSet = CharSet.Unicode, SetLastError = true)]
+        internal static extern Int32 RegGetValue(
+        EnumLib.HKEY hkey,
+        string lpSubKey,
+        string lpValue,
+        RFlags dwFlags,
+        out RType pdwType,
+        IntPtr pvData,
+        ref UInt32 pcbData);
+
+Sample Code:
+        uint pcbData = 0;
+        EnumLib.RType type;
+        var pvData = IntPtr.Zero;
+
+        Api.advapi32.RegGetValue(
+        EnumLib.HKEY.HKEY_CURRENT_USER,
+        @"Software\LG Electronics\LG PC Suite IV\1.0", @"DS_URL",
+        EnumLib.RFlags.Any,
+        out type, pvData, ref pcbData);
+
+        pvData = pvData.Reallocate(pcbData);
+        Api.advapi32.RegGetValue(
+        EnumLib.HKEY.HKEY_CURRENT_USER,
+        @"Software\LG Electronics\LG PC Suite IV\1.0", @"DS_URL",
+        type.ToFlag(),
+        out type, pvData, ref pcbData);
+
+        if (type == EnumLib.RType.RegSz)
+        Console.WriteLine(pvData.ToUnicodeStr());
+
+Alternative Managed API:
+Microsoft.Win32.Registry.GetValue()
+*/
+
+
 
 // Shlwapi dll contains a collection of functions that provide support for various shell operations, such as 
 //file and folder manipulation, user interface elements, and internet-related tasks.
 
 
-// https://www.pinvoke.net/
+
 #region shlwapi.dll
 /*
 AssocCreate
