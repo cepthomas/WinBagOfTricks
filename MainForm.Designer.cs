@@ -35,7 +35,7 @@
             this.btnAbout = new System.Windows.Forms.ToolStripButton();
             this.btnLoop = new System.Windows.Forms.ToolStripButton();
             this.btnDebug = new System.Windows.Forms.ToolStripButton();
-            this.txtViewer = new NBagOfUis.TextViewer();
+            this.txtViewer = new Ephemera.NBagOfUis.TextViewer();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -140,7 +140,7 @@
         private System.Windows.Forms.ToolStripDropDownButton fileDropDownButton;
         private System.Windows.Forms.ToolStripButton btnSettings;
         private System.Windows.Forms.ToolStripButton btnAbout;
-        private NBagOfUis.TextViewer txtViewer;
+        private Ephemera.NBagOfUis.TextViewer txtViewer;
         private System.Windows.Forms.ToolStripButton btnLoop;
         private System.Windows.Forms.ToolStripButton btnDebug;
     }
