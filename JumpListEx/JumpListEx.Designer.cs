@@ -1,5 +1,5 @@
 
-namespace Ephemera.JumpListEx
+namespace JumpListEx
 {
     partial class JumpListEx
     {

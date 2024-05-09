@@ -176,7 +176,7 @@ SHQueryUserNotificationState   SHRunFileDialog   SHSetUnreadMailCount   StartInf
 #endregion
 
 
-namespace Ephemera.Xplr
+namespace Xplr
 {
     public class ShellStuff
     {

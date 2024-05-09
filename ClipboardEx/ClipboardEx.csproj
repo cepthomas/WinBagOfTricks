@@ -4,8 +4,8 @@
         <OutputType>WinExe</OutputType>
         <TargetFramework>net6.0-windows</TargetFramework>
         <UseWindowsForms>true</UseWindowsForms>
-        <AssemblyName>Ephemera.ClipboardEx</AssemblyName>
-        <RootNamespace>Ephemera.ClipboardEx</RootNamespace>
+        <AssemblyName>ClipboardEx</AssemblyName>
+        <RootNamespace>ClipboardEx</RootNamespace>
         <Deterministic>False</Deterministic>
         <Version>$([System.DateTime]::UtcNow.ToString(yy.MM.dd))</Version>
         <Description>WinBagOfTricks clipboard application</Description>

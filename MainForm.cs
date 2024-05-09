@@ -13,7 +13,7 @@ using System.Text.Json;
 using Ephemera.NBagOfTricks;
 
 
-namespace Ephemera.WinBagOfTricks
+namespace WinBagOfTricks
 {
     /// <summary>
     /// Actually more of a test host.

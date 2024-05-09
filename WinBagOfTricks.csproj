@@ -4,8 +4,8 @@
         <OutputType>WinExe</OutputType>
         <TargetFramework>net6.0-windows</TargetFramework>
         <UseWindowsForms>true</UseWindowsForms>
-        <AssemblyName>Ephemera.WinBagOfTricks</AssemblyName>
-        <RootNamespace>Ephemera.WinBagOfTricks</RootNamespace>
+        <AssemblyName>WinBagOfTricks</AssemblyName>
+        <RootNamespace>WinBagOfTricks</RootNamespace>
         <Deterministic>False</Deterministic>
         <Version>$([System.DateTime]::UtcNow.ToString(yy.MM.dd))</Version>
         <Description>WinBagOfTricks application</Description>

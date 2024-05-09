@@ -14,7 +14,7 @@ using Ephemera.NBagOfTricks;
 using Ephemera.NBagOfUis;
 
 
-namespace Ephemera.JumpListEx
+namespace JumpListEx
 {
     public partial class JumpListEx : Form
     {

@@ -20,7 +20,7 @@ using Ephemera.NBagOfUis;
 // TODO persist clip data.
 
 
-namespace Ephemera.ClipboardEx
+namespace ClipboardEx
 {
     #region Types
     /// <summary>For internal management.</summary>

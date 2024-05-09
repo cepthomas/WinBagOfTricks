@@ -4,8 +4,8 @@
         <OutputType>WinExe</OutputType>
         <TargetFramework>net6.0-windows</TargetFramework>
         <UseWindowsForms>true</UseWindowsForms>
-        <AssemblyName>Ephemera.TrayEx</AssemblyName>
-        <RootNamespace>Ephemera.TrayEx</RootNamespace>
+        <AssemblyName>TrayEx</AssemblyName>
+        <RootNamespace>TrayEx</RootNamespace>
         <Deterministic>False</Deterministic>
         <Version>$([System.DateTime]::UtcNow.ToString(yy.MM.dd))</Version>
         <Description>WinBagOfTricks tray application</Description>

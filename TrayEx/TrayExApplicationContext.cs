@@ -11,7 +11,7 @@ using Ephemera.NBagOfTricks;
 using Ephemera.NBagOfUis;
 
 
-namespace Ephemera.TrayEx
+namespace TrayEx
 {
     /// <summary>Framework for running application as a tray app.</summary>
     public class TrayExApplicationContext : ApplicationContext
