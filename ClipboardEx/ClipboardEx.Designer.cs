@@ -18,7 +18,7 @@ namespace ClipboardEx
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.tvInfo = new NBagOfUis.TextViewer();
+            this.tvInfo = new Ephemera.NBagOfUis.TextViewer();
             this.rtbText = new System.Windows.Forms.RichTextBox();
             this.btnDebug = new System.Windows.Forms.Button();
             this.btnClear = new System.Windows.Forms.Button();
@@ -117,7 +117,7 @@ namespace ClipboardEx
         #endregion
 
         
-        private NBagOfUis.TextViewer tvInfo;
+        private Ephemera.NBagOfUis.TextViewer tvInfo;
         private System.Windows.Forms.RichTextBox rtbText;
         private System.Windows.Forms.Button btnDebug;
         private System.Windows.Forms.Button btnClear;
