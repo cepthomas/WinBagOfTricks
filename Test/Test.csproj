@@ -2,13 +2,13 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net8.0-windows7.0</TargetFramework>
+        <TargetFramework>net8.0-windows</TargetFramework>
         <UseWindowsForms>true</UseWindowsForms>
-        <AssemblyName>WinBagOfTricks</AssemblyName>
-        <RootNamespace>WinBagOfTricks</RootNamespace>
+        <AssemblyName>WinBagOfTricks.Test</AssemblyName>
+        <RootNamespace>WinBagOfTricks.Test</RootNamespace>
         <Deterministic>False</Deterministic>
         <Version>$([System.DateTime]::UtcNow.ToString(yy.MM.dd))</Version>
-        <Description>WinBagOfTricks application</Description>
+        <Description>WinBagOfTricks tester</Description>
         <Copyright>MIT License</Copyright>
         <OutputPath>bin\</OutputPath>
         <!-- <DefineConstants>DEBUG;TRACE</DefineConstants> -->
@@ -17,23 +17,7 @@
         <Nullable>enable</Nullable>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <SatelliteResourceLanguages>none</SatelliteResourceLanguages>
-        <ApplicationIcon>Resources\Poulpo.ico</ApplicationIcon>
     </PropertyGroup>
-
-    <ItemGroup>
-        <Compile Remove="ClipboardEx\**" />
-        <Compile Remove="JumpListEx\**" />
-        <Compile Remove="lib\**" />
-        <Compile Remove="TrayEx\**" />
-        <EmbeddedResource Remove="ClipboardEx\**" />
-        <EmbeddedResource Remove="JumpListEx\**" />
-        <EmbeddedResource Remove="lib\**" />
-        <EmbeddedResource Remove="TrayEx\**" />
-        <None Remove="ClipboardEx\**" />
-        <None Remove="JumpListEx\**" />
-        <None Remove="lib\**" />
-        <None Remove="TrayEx\**" />
-    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
@@ -41,14 +25,14 @@
 
     <ItemGroup>
         <Reference Include="Ephemera.NBagOfTricks">
-            <HintPath>lib\Ephemera.NBagOfTricks.dll</HintPath>
+            <HintPath>..\lib\Ephemera.NBagOfTricks.dll</HintPath>
         </Reference>
         <Reference Include="Ephemera.NBagOfUis">
-            <HintPath>lib\Ephemera.NBagOfUis.dll</HintPath>
+            <HintPath>..\lib\Ephemera.NBagOfUis.dll</HintPath>
         </Reference>
     </ItemGroup>
 
-    <ItemGroup>
+<!--     <ItemGroup>
         <Compile Update="Properties\Resources.Designer.cs">
             <DesignTime>True</DesignTime>
             <AutoGen>True</AutoGen>
@@ -62,5 +46,6 @@
             <LastGenOutput>Resources.Designer.cs</LastGenOutput>
         </EmbeddedResource>
     </ItemGroup>
-
+ -->
+ 
 </Project>
