@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Windows.Forms;
 
 
-namespace WbotWin32
+namespace Ephemera.Win32
 {
     // Experiment for manipulating consoles in a WinForms world. Needs more debugging.
     // Borrowed from https://developercommunity.visualstudio.com/t/console-output-is-gone-in-vs2017-works-fine-when-d/12166

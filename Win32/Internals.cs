@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 
-// TODO Separate into new repo.
+// TODO Consolidate all DllImport?
 // TODO suppress/fix warnings: https://stackoverflow.com/a/35819594  https://stackoverflow.com/a/67127595 
 #pragma warning disable SYSLIB1054, CA1401, CA2101
 
-namespace WbotWin32
+namespace Ephemera.Win32
 {
     public static class Internals
     {

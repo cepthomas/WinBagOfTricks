@@ -12,7 +12,7 @@ using Ephemera.NBagOfTricks;
 
 #pragma warning disable SYSLIB1054, CA1401, CA2101
 
-namespace WbotWin32
+namespace Ephemera.Win32
 {
     public class WindowManagement
     {

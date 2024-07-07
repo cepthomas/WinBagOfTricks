@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Library</OutputType>
@@ -7,8 +7,20 @@
         <Platforms>x64</Platforms>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <AssemblyName>WbotWin32</AssemblyName>
-        <RootNamespace>WbotWin32</RootNamespace>
+        <AssemblyName>Ephemera.Win32</AssemblyName>
+        <RootNamespace>Ephemera.Win32</RootNamespace>
+
+        <NoWarn>1701;1702;CA1416;IDE1006;CS1591;CA1816;CS1587;CA1822</NoWarn>
+        <Deterministic>False</Deterministic>
+        <Version>0.9.0</Version>
+        <SatelliteResourceLanguages>none</SatelliteResourceLanguages>
+        <Company>Ephemera Inc</Company>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+        <Copyright>MIT License</Copyright>
+        <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+        <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
