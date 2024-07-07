@@ -97,7 +97,7 @@ namespace JumpListEx
             ///// Add recent files.
             DirectoryInfo diRecent = new(Environment.GetFolderPath(Environment.SpecialFolder.Recent));
             // Key is target, value is shortcut.
-            Dictionary<FileInfo, FileInfo> finfos = new();
+            Dictionary<FileInfo, FileInfo> finfos = [];
 
             // Get the links.
             foreach (var f in filters)

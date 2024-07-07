@@ -10,7 +10,6 @@ using System.Windows.Forms;
 using Ephemera.NBagOfTricks;
 using Ephemera.NBagOfUis;
 
-
 namespace TrayEx
 {
     /// <summary>Framework for running application as a tray app.</summary>

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 
-namespace WinBagOfTricks.Test
+namespace Test
 {
     static class Program
     {

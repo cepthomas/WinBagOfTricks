@@ -1,4 +1,4 @@
-﻿namespace WinBagOfTricks.Test
+﻿namespace Test
 {
     partial class MainForm
     {
@@ -28,117 +28,102 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.fileDropDownButton = new System.Windows.Forms.ToolStripDropDownButton();
-            this.btnSettings = new System.Windows.Forms.ToolStripButton();
-            this.btnAbout = new System.Windows.Forms.ToolStripButton();
-            this.btnLoop = new System.Windows.Forms.ToolStripButton();
-            this.btnDebug = new System.Windows.Forms.ToolStripButton();
-            this.txtViewer = new Ephemera.NBagOfUis.TextViewer();
-            this.toolStrip1.SuspendLayout();
-            this.SuspendLayout();
-            // 
-            // toolStrip1
-            // 
-            this.toolStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
-            this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.fileDropDownButton,
-            this.btnSettings,
-            this.btnAbout,
-            this.btnLoop,
-            this.btnDebug});
-            this.toolStrip1.Location = new System.Drawing.Point(0, 0);
-            this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(813, 27);
-            this.toolStrip1.TabIndex = 0;
-            this.toolStrip1.Text = "toolStrip1";
-            // 
-            // fileDropDownButton
-            // 
-            this.fileDropDownButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.fileDropDownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.fileDropDownButton.Name = "fileDropDownButton";
-            this.fileDropDownButton.Size = new System.Drawing.Size(34, 24);
-            this.fileDropDownButton.Text = "File";
-            this.fileDropDownButton.ToolTipText = "File operations";
-            // 
-            // btnSettings
-            // 
-            this.btnSettings.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnSettings.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnSettings.Name = "btnSettings";
-            this.btnSettings.Size = new System.Drawing.Size(29, 24);
-            this.btnSettings.Text = "toolStripButton1";
-            this.btnSettings.ToolTipText = "Make it your own";
-            // 
-            // btnAbout
-            // 
-            this.btnAbout.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnAbout.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnAbout.Name = "btnAbout";
-            this.btnAbout.Size = new System.Drawing.Size(29, 24);
-            this.btnAbout.Text = "toolStripButton1";
-            this.btnAbout.ToolTipText = "Get some info";
-            this.btnAbout.Click += new System.EventHandler(this.About_Click);
-            // 
-            // btnLoop
-            // 
-            this.btnLoop.CheckOnClick = true;
-            this.btnLoop.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btnLoop.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnLoop.Name = "btnLoop";
-            this.btnLoop.Size = new System.Drawing.Size(29, 24);
-            // 
-            // btnDebug
-            // 
-            this.btnDebug.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
-            this.btnDebug.Image = ((System.Drawing.Image)(resources.GetObject("btnDebug.Image")));
-            this.btnDebug.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnDebug.Name = "btnDebug";
-            this.btnDebug.Size = new System.Drawing.Size(56, 24);
-            this.btnDebug.Text = "debug";
-            this.btnDebug.Click += new System.EventHandler(this.Debug_Click);
+            txtViewer = new Ephemera.NBagOfUis.TextViewer();
+            btnTrayEx = new System.Windows.Forms.Button();
+            btnJumpListEx = new System.Windows.Forms.Button();
+            btnClipboardEx = new System.Windows.Forms.Button();
+            button3 = new System.Windows.Forms.Button();
+            button4 = new System.Windows.Forms.Button();
+            SuspendLayout();
             // 
             // txtViewer
             // 
-            this.txtViewer.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtViewer.Location = new System.Drawing.Point(29, 50);
-            this.txtViewer.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.txtViewer.MaxText = 5000;
-            this.txtViewer.Name = "txtViewer";
-            this.txtViewer.Prompt = "";
-            this.txtViewer.Size = new System.Drawing.Size(725, 253);
-            this.txtViewer.TabIndex = 58;
-            this.txtViewer.WordWrap = true;
+            txtViewer.Anchor = System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right;
+            txtViewer.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            txtViewer.Location = new System.Drawing.Point(12, 43);
+            txtViewer.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            txtViewer.MaxText = 5000;
+            txtViewer.Name = "txtViewer";
+            txtViewer.Prompt = "";
+            txtViewer.Size = new System.Drawing.Size(844, 344);
+            txtViewer.TabIndex = 58;
+            txtViewer.WordWrap = true;
+            // 
+            // btnTrayEx
+            // 
+            btnTrayEx.Location = new System.Drawing.Point(14, 7);
+            btnTrayEx.Name = "btnTrayEx";
+            btnTrayEx.Size = new System.Drawing.Size(100, 29);
+            btnTrayEx.TabIndex = 59;
+            btnTrayEx.Text = "TrayEx";
+            btnTrayEx.UseVisualStyleBackColor = true;
+            btnTrayEx.Click += TrayEx_Click;
+            // 
+            // btnJumpListEx
+            // 
+            btnJumpListEx.Location = new System.Drawing.Point(114, 7);
+            btnJumpListEx.Name = "btnJumpListEx";
+            btnJumpListEx.Size = new System.Drawing.Size(100, 29);
+            btnJumpListEx.TabIndex = 60;
+            btnJumpListEx.Text = "JumpListEx";
+            btnJumpListEx.UseVisualStyleBackColor = true;
+            btnJumpListEx.Click += JumpListEx_Click;
+            // 
+            // btnClipboardEx
+            // 
+            btnClipboardEx.Location = new System.Drawing.Point(214, 7);
+            btnClipboardEx.Name = "btnClipboardEx";
+            btnClipboardEx.Size = new System.Drawing.Size(100, 29);
+            btnClipboardEx.TabIndex = 61;
+            btnClipboardEx.Text = "ClipboardEx";
+            btnClipboardEx.UseVisualStyleBackColor = true;
+            btnClipboardEx.Click += ClipboardEx_Click;
+            // 
+            // button3
+            // 
+            button3.Location = new System.Drawing.Point(314, 7);
+            button3.Name = "button3";
+            button3.Size = new System.Drawing.Size(100, 29);
+            button3.TabIndex = 62;
+            button3.Text = "button3";
+            button3.UseVisualStyleBackColor = true;
+            button3.Click += button3_Click;
+            // 
+            // button4
+            // 
+            button4.Location = new System.Drawing.Point(414, 7);
+            button4.Name = "button4";
+            button4.Size = new System.Drawing.Size(100, 29);
+            button4.TabIndex = 63;
+            button4.Text = "button4";
+            button4.UseVisualStyleBackColor = true;
+            button4.Click += button4_Click;
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(813, 338);
-            this.Controls.Add(this.txtViewer);
-            this.Controls.Add(this.toolStrip1);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.Name = "MainForm";
-            this.Text = "Clip Explorer";
-            this.toolStrip1.ResumeLayout(false);
-            this.toolStrip1.PerformLayout();
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(869, 400);
+            Controls.Add(button4);
+            Controls.Add(button3);
+            Controls.Add(btnClipboardEx);
+            Controls.Add(btnJumpListEx);
+            Controls.Add(btnTrayEx);
+            Controls.Add(txtViewer);
+            Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            Name = "MainForm";
+            Text = "Test";
+            ResumeLayout(false);
         }
 
         #endregion
 
-        private System.Windows.Forms.ToolStrip toolStrip1;
-        private System.Windows.Forms.ToolStripDropDownButton fileDropDownButton;
-        private System.Windows.Forms.ToolStripButton btnSettings;
-        private System.Windows.Forms.ToolStripButton btnAbout;
         private Ephemera.NBagOfUis.TextViewer txtViewer;
-        private System.Windows.Forms.ToolStripButton btnLoop;
-        private System.Windows.Forms.ToolStripButton btnDebug;
+        private System.Windows.Forms.Button btnTrayEx;
+        private System.Windows.Forms.Button btnJumpListEx;
+        private System.Windows.Forms.Button btnClipboardEx;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button button4;
     }
 }
 
