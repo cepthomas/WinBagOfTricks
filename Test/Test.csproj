@@ -21,6 +21,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="System.Drawing.Common" Version="8.0.6" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\Win32\Win32.csproj" />
     </ItemGroup>
 

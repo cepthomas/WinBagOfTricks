@@ -9,6 +9,9 @@ using System.Text;
 using System.Windows.Forms;
 using Ephemera.NBagOfTricks;
 using Ephemera.NBagOfUis;
+using W32 = Ephemera.Win32.Internals;
+using WM = Ephemera.Win32.WindowManagement;
+
 
 #pragma warning disable CA1822
 

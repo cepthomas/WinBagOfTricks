@@ -16,10 +16,12 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using Ephemera.NBagOfTricks;
 using Ephemera.NBagOfUis;
+using W32 = Ephemera.Win32.Internals;
+using WM = Ephemera.Win32.WindowManagement;
 
 // TODO persist clip data.
 
-#pragma warning disable CS1591, SYSLIB1054
+#pragma warning disable CS1591, SYSLIB1054, CA1822
 
 namespace ClipboardEx
 {
@@ -52,8 +54,17 @@ namespace ClipboardEx
         #endregion
 
         #region Fields
-        /// <summary>The settings.</summary>
-        readonly UserSettings _settings;
+        /// <summary>Cosmetics.</summary>
+        readonly Color _controlColor = Color.LimeGreen;
+
+        /// <summary></summary>
+        readonly bool _fitImage = true;
+
+        /// <summary></summary>
+        readonly Keys _keyTrigger = Keys.Z;
+
+        /// <summary></summary>
+        readonly bool _debug = false;
 
         /// <summary>Next in line for clipboard  notification.</summary>
         IntPtr _nextCb = IntPtr.Zero;
@@ -78,10 +89,13 @@ namespace ClipboardEx
 
         /// <summary>Manage resources.</summary>
         bool _disposed;
+
+        const int MAX_CLIPS = 10;
         #endregion
 
-        #region Constants
-        const int MAX_CLIPS = 10;
+        #region Native Methods
+
+        #region Definitions
         // Windows messages.
         const int WM_KEYDOWN = 0x100;
         //const int WM_KEYUP = 0x101;
@@ -96,32 +110,7 @@ namespace ClipboardEx
         const int WM_COPY = 0x0301;
         const int WM_CUT = 0x0300;
         const int WM_PASTE = 0x0302;
-        #endregion
 
-        #region Interop Methods
-        class NativeMethods
-        {
-            [DllImport("User32.dll")]
-            static extern IntPtr SetClipboardViewer(IntPtr hWndNewViewer);
-
-            [DllImport("User32.dll", CharSet = CharSet.Auto)]
-            static extern bool ChangeClipboardChain(IntPtr hWndRemove, IntPtr hWndNewNext);
-
-            [DllImport("user32.dll")]
-            static extern int CallNextHookEx(IntPtr idHook, int nCode, int wParam, ref KBDLLHOOKSTRUCT lParam);
-
-            [DllImport("user32.dll")]
-            static extern IntPtr SetWindowsHookEx(HookType hookType, HookProc lpfn, IntPtr hMod, uint dwThreadId);
-
-            [DllImport("user32.dll")]
-            static extern bool UnhookWindowsHookEx(IntPtr hInstance);
-
-            [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-            static extern IntPtr GetModuleHandle(string lpModuleName);
-        }
-        #endregion
-
-        #region Interop Definitions
         [Flags]
         public enum KBDLLHOOKSTRUCTFlags : uint
         {
@@ -153,6 +142,32 @@ namespace ClipboardEx
         internal delegate int HookProc(int code, int wParam, ref KBDLLHOOKSTRUCT lParam);
         #endregion
 
+        [DllImport("User32.dll")]
+        static extern IntPtr SetClipboardViewer(IntPtr hWndNewViewer);
+
+        [DllImport("User32.dll", CharSet = CharSet.Auto)]
+        static extern bool ChangeClipboardChain(IntPtr hWndRemove, IntPtr hWndNewNext);
+
+        [DllImport("user32.dll")]
+        static extern int CallNextHookEx(IntPtr idHook, int nCode, int wParam, ref KBDLLHOOKSTRUCT lParam);
+
+        [DllImport("user32.dll")]
+        static extern IntPtr SetWindowsHookEx(HookType hookType, HookProc lpfn, IntPtr hMod, uint dwThreadId);
+
+        [DllImport("user32.dll")]
+        static extern bool UnhookWindowsHookEx(IntPtr hInstance);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        // TODO move these two into W#@.
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        static extern int SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+        // inject a keystroke.
+        [DllImport("user32.dll")]
+        static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
+        #endregion
+
         #region Lifecycle
         /// <summary>
         /// Constructor.
@@ -162,9 +177,8 @@ namespace ClipboardEx
             InitializeComponent();
 
             string appDir = MiscUtils.GetAppDataDir("ClipboardEx", "Ephemera");
-            _settings = (UserSettings)SettingsCore.Load(appDir, typeof(UserSettings));
 
-            Visible = _settings.Debug;
+            Visible = _debug;
 
             // Init clip displays.
             int x = 5;
@@ -186,7 +200,7 @@ namespace ClipboardEx
             //Width = x + borderWidth * 2;
             Height = y + borderWidth * 2 + 55;
 
-            if (!_settings.Debug)
+            if (!_debug)
             {
                 //Height = h + 55;
                 Width = _displays[0].Right + borderWidth * 2 + 5;
@@ -197,15 +211,15 @@ namespace ClipboardEx
             tvInfo.MatchColors.Add("DBG", Color.LightGreen);
             tvInfo.BackColor = Color.Cornsilk;
 
-            if(_settings.Debug)
+            if(_debug)
             {
                 rtbText.LoadFile(@"..\..\\ex.rtf");
             }
 
             btnClear.Click += (_, __) => tvInfo.Clear();
-            lblLetter.Text = _settings.KeyTrigger.ToString();
+            lblLetter.Text = _keyTrigger.ToString();
 
-            _nextCb = NativeMethods.SetClipboardViewer(Handle);
+            _nextCb = SetClipboardViewer(Handle);
 
             // HL messages of interest.
             _clipboardMessages = new()
@@ -229,23 +243,13 @@ namespace ClipboardEx
             //   within the code associated with the current process.
             // dwThreadId: Specifies the identifier of the thread with which the hook procedure is to be associated.If this parameter is
             //   zero, the hook procedure is associated with all existing threads running in the same desktop as the calling thread.
-            IntPtr hModule = NativeMethods.GetModuleHandle(module!.ModuleName!);
-            _hhook = NativeMethods.SetWindowsHookEx(HookType.WH_KEYBOARD_LL, KeyboardHookProc, hModule, 0);
+            IntPtr hModule = GetModuleHandle(module!.ModuleName!);
+            _hhook = SetWindowsHookEx(HookType.WH_KEYBOARD_LL, KeyboardHookProc, hModule, 0);
 
             // Paste test.
             //_ticks = 5;
             //timer1.Tick += (_, __) => { if (_ticks-- > 0) { Clipboard.SetText($"XXXXX{_ticks}"); DoPaste(); } };
             //timer1.Enabled = true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="e"></param>
-        protected override void OnFormClosing(FormClosingEventArgs e)
-        {
-            _settings.Save();
-            base.OnFormClosing(e);
         }
 
         ///// <summary>
@@ -283,8 +287,8 @@ namespace ClipboardEx
 
                 // Release unmanaged resources.
                 // Set large fields to null.
-                NativeMethods.ChangeClipboardChain(Handle, _nextCb);
-                NativeMethods.UnhookWindowsHookEx(_hhook);
+                ChangeClipboardChain(Handle, _nextCb);
+                UnhookWindowsHookEx(_hhook);
 
                 _disposed = true;
             }
@@ -319,11 +323,11 @@ namespace ClipboardEx
                     {
                         case ClipType.Empty:
                             ds.SetEmpty();
-                            //ds.Visible = _settings.Debug;
+                            //ds.Visible = Debug;
                             break;
 
                         case ClipType.Image:
-                            ds.SetImage(clip.Bitmap!, _settings.FitImage);
+                            ds.SetImage(clip.Bitmap!, _fitImage);
                             break;
 
                         case ClipType.Other:
@@ -395,17 +399,17 @@ namespace ClipboardEx
                     if (dobj is not null)
                     {
                         // Info about the source window.
-                        IntPtr hwnd = NativeMethods.GetForegroundWindow();
-                        ret = NativeMethods.GetWindowThreadProcessId(hwnd, out uint processID);
-                        var procName = Process.GetProcessById((int)processID).ProcessName;
-                        var appPath = Process.GetProcessById((int)processID).MainModule!.FileName;
+                        IntPtr hwnd = WM.ForegroundWindow;
+                        var info = WM.GetAppWindowInfo(hwnd);
+                        var procName = Process.GetProcessById(info.Pid).ProcessName;
+                        var appPath = Process.GetProcessById(info.Pid).MainModule!.FileName;
                         var appName = Path.GetFileName(appPath);
-                        StringBuilder title = new(100);
-                        int res = NativeMethods.GetWindowText(hwnd, title, 100);
+                        //StringBuilder title = new(100);
+                        //int res = W32.GetWindowText(hwnd, title, 100);
 
-                        if(res > 0)
+                        if(info.Title.Length > 0)
                         {
-                            Tell($"CbDraw COPY appName:{appName} procName:{procName} title:{title}");
+                            Tell($"CbDraw COPY appName:{appName} procName:{procName} title:{info.Title}");
 
                             // Data type info.
                             var dtypes = dobj.GetFormats();
@@ -417,7 +421,7 @@ namespace ClipboardEx
                                 Ctype = ClipType.Other,
                                 Data = Clipboard.GetDataObject(),
                                 OrigApp = appName ?? "Unknown",
-                                OrigTitle = title.ToString()
+                                OrigTitle = info.Title.ToString()
                             };
 
                             if (Clipboard.ContainsText())
@@ -456,7 +460,7 @@ namespace ClipboardEx
                         }
                         else
                         {
-                            Tell($"ERR CbDraw res:{res}");
+                            Tell($"ERR CbDraw Title:{info.Title}");
                         }
                     }
                     else
@@ -482,7 +486,7 @@ namespace ClipboardEx
             }
 
             // Pass along to the next in the chain.
-            ret = (uint)NativeMethods.SendMessage(_nextCb, m.Msg, m.WParam, m.LParam);
+            ret = (uint)SendMessage(_nextCb, m.Msg, m.WParam, m.LParam);
 
             return ret;
         }
@@ -504,7 +508,7 @@ namespace ClipboardEx
             else
             {
                 // Just pass along to the next in the chain.
-                ret = (uint)NativeMethods.SendMessage(_nextCb, m.Msg, m.WParam, m.LParam);
+                ret = (uint)SendMessage(_nextCb, m.Msg, m.WParam, m.LParam);
             }
 
             return ret;
@@ -558,7 +562,7 @@ namespace ClipboardEx
                                 _clips.Remove(clip);
                             }
                             UpdateClipDisplays();
-                            Visible = _settings.Debug;
+                            Visible = _debug;
                         }
                         else
                         {
@@ -577,23 +581,24 @@ namespace ClipboardEx
         public void DoPaste()
         {
             // TODO but the focus is me now!
-            
-            IntPtr hwnd = NativeMethods.GetForegroundWindow();
-            uint tid = NativeMethods.GetWindowThreadProcessId(hwnd, out uint lpdwProcessId);
-            var p = Process.GetProcessById((int)lpdwProcessId);
-            Tell($"FileName:{p.MainModule!.FileName} pid:{ lpdwProcessId} tid:{tid}");
+
+            //IntPtr hwnd = WM.ForegroundWindow;
+            //var info = WM.GetAppWindowInfo(hwnd);
+            //uint tid = WM.GetWindowThreadProcessId(hwnd, out uint lpdwProcessId);
+            //var p = Process.GetProcessById((int)lpdwProcessId);
+            //Tell($"FileName:{p.MainModule!.FileName} pid:{ lpdwProcessId} tid:{tid}");
 
             // This does work. Virtual keycodes from https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
             byte vkey = 0x56; // 'v'
             byte ctrl = 0x11;
             int KEYEVENTF_KEYUP = 0x0002;
-            NativeMethods.keybd_event(ctrl, 0, 0, 0);
-            NativeMethods.keybd_event(vkey, 0, 0, 0);
-            NativeMethods.keybd_event(ctrl, 0, KEYEVENTF_KEYUP, 0);
-            NativeMethods.keybd_event(vkey, 0, KEYEVENTF_KEYUP, 0);
+            keybd_event(ctrl, 0, 0, 0);
+            keybd_event(vkey, 0, 0, 0);
+            keybd_event(ctrl, 0, KEYEVENTF_KEYUP, 0);
+            keybd_event(vkey, 0, KEYEVENTF_KEYUP, 0);
 
             // Note that this doesn't work, which makes sense.
-            //NativeMethods.SendMessage(hwnd, 0x0302, IntPtr.Zero, IntPtr.Zero); // NativeMethods.WM_PASTE
+            //SendMessage(hwnd, 0x0302, IntPtr.Zero, IntPtr.Zero); // WM_PASTE
         }
 
         /// <summary>
@@ -622,7 +627,7 @@ namespace ClipboardEx
                         _winPressed = pressed;
                     }
 
-                    if (key == _settings.KeyTrigger)
+                    if (key == _keyTrigger)
                     {
                         _letterPressed = pressed;
                     }
@@ -630,9 +635,9 @@ namespace ClipboardEx
                     bool match = _winPressed && _letterPressed;
 
                     // Diagnostics.
-                    lblWin.BackColor = _winPressed ? _settings.ControlColor : Color.Transparent;
-                    lblLetter.BackColor = _letterPressed ? _settings.ControlColor : Color.Transparent;
-                    lblMatch.BackColor = match ? _settings.ControlColor : Color.Transparent;
+                    lblWin.BackColor = _winPressed ? _controlColor : Color.Transparent;
+                    lblLetter.BackColor = _letterPressed ? _controlColor : Color.Transparent;
+                    lblMatch.BackColor = match ? _controlColor : Color.Transparent;
 
                     if (match)
                     {
@@ -642,7 +647,7 @@ namespace ClipboardEx
                 }
             }
 
-            return NativeMethods.CallNextHookEx(_hhook, code, wParam, ref lParam);
+            return CallNextHookEx(_hhook, code, wParam, ref lParam);
         }
         #endregion
 
@@ -666,33 +671,6 @@ namespace ClipboardEx
             string s = $"{DateTime.Now:mm\\:ss\\.fff} {msg}";
             tvInfo.AppendLine(s);
         }
-        #endregion
-    }
-
-    [Serializable]
-    public sealed class UserSettings : SettingsCore
-    {
-        #region Persisted editable properties
-        [DisplayName("Control Color")]
-        [Description("Pick whatever you like.")]
-        [Browsable(true)]
-        [JsonConverter(typeof(JsonColorConverter))]
-        public Color ControlColor { get; set; } = Color.LimeGreen;
-
-        [DisplayName("Fit Image")]
-        [Description("Fit to space or clip.")]
-        [Browsable(true)]
-        public bool FitImage { get; set; } = true;
-
-        [DisplayName("Key Trigger")]
-        [Description("Windows key + this opens clip viewer")]
-        [Browsable(true)]
-        public Keys KeyTrigger { get; set; } = Keys.Z;
-
-        [DisplayName("Debug Mode")]
-        [Description("Shows more stuff.")]
-        [Browsable(true)]
-        public bool Debug { get; set; } = false;
         #endregion
     }
 }

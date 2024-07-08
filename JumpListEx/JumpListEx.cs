@@ -11,7 +11,8 @@ using System.Reflection;
 using Microsoft.WindowsAPICodePack.Taskbar;
 using Microsoft.WindowsAPICodePack.Shell;
 using Ephemera.NBagOfTricks;
-using Ephemera.NBagOfUis;
+using W32 = Ephemera.Win32.Internals;
+using WM = Ephemera.Win32.WindowManagement;
 
 
 namespace JumpListEx

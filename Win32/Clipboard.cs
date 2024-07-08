@@ -145,7 +145,7 @@ namespace Ephemera.Win32
         }
         #endregion
 
-        #region Native methods - private
+        #region Native Methods
 
         #region Types
         // https://learn.microsoft.com/en-us/windows/win32/dataxchg/standard-clipboard-formats

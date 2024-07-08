@@ -4,7 +4,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 
-#pragma warning disable SYSLIB1054, CA1401, CA2101, CS1591
+#pragma warning disable SYSLIB1054, CA1401, CA2101, CS1591, CA1806, CA2020
+
 
 namespace Ephemera.Win32
 {
@@ -25,7 +26,7 @@ namespace Ephemera.Win32
         #endregion
 
         #region Fields
-        static List<int> _hotKeyIds = new();
+        static readonly List<int> _hotKeyIds = [];
         #endregion
 
         #region API
@@ -129,7 +130,7 @@ namespace Ephemera.Win32
         }
         #endregion
 
-        #region Native methods - private
+        #region Native Methods
 
         #region Types
         enum ShowCommands : int
@@ -276,15 +277,12 @@ namespace Ephemera.Win32
         #endregion
 
         #region user32.dll
-        /// <summary>Rudimentary UI notification from a console application.</summary>
+        /// <summary>Rudimentary UI notification for use in a console application.</summary>
         [DllImport("user32.dll", CharSet = CharSet.Ansi)]
         static extern int MessageBox(IntPtr hWnd, string msg, string caption, uint type);
 
         [DllImport("user32.dll")]
         static extern bool SetProcessDPIAware();
-
-        [DllImport("user32.dll", CharSet = CharSet.Ansi)]
-        static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, int wParam, StringBuilder lParam);
 
         [DllImport("user32.dll", EntryPoint = "RegisterWindowMessageA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
         static extern int RegisterWindowMessage(string lpString);
@@ -294,10 +292,6 @@ namespace Ephemera.Win32
 
         [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
         static extern int DeregisterShellHookWindow(IntPtr hWnd);
-
-        // inject a keystroke.
-        [DllImport("user32.dll")]
-        static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
 
         // Keyboard hooks.
         [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]

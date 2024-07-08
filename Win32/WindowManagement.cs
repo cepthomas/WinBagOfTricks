@@ -12,6 +12,7 @@ using Ephemera.NBagOfTricks;
 
 #pragma warning disable SYSLIB1054, CA1401, CA2101, CS1591, CA1416, IDE0058, CA1806
 
+
 namespace Ephemera.Win32
 {
     public class WindowManagement
@@ -175,7 +176,21 @@ namespace Ephemera.Win32
         }
 
         /// <summary>
-        /// Move and/or resize a window.
+        /// Show the window.
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <returns></returns>        
+        public static bool ShowWindow(IntPtr handle)
+        {
+            return ShowWindow(handle, 1);
+            //SW_HIDE = 0, TODO1 these are defined in internals.
+            //SW_SHOWNORMAL = 1,
+            //SW_SHOWMINIMIZED = 2,
+            //SW_SHOWMAXIMIZED = 3,
+        }
+
+        /// <summary>
+        /// Move a window.
         /// </summary>
         /// <param name="handle"></param>
         /// <param name="loc">Where to.</param>
@@ -207,7 +222,9 @@ namespace Ephemera.Win32
         }
         #endregion
 
-        #region Native methods - private
+        #region Native Methods
+
+        #region Definitions
         [StructLayout(LayoutKind.Sequential)]
         struct Rect
         {
@@ -242,6 +259,7 @@ namespace Ephemera.Win32
             // The Windows version of the application that created the window.
             public ushort wCreatorVersion;
         }
+        #endregion
 
         [DllImport("user32.dll")]
         static extern bool SetForegroundWindow(IntPtr hWnd);

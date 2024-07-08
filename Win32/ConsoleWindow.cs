@@ -7,6 +7,8 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Windows.Forms;
+using W32 = Ephemera.Win32.Internals;
+using WM = Ephemera.Win32.WindowManagement;
 
 
 #pragma warning disable SYSLIB1054, CA1401, CA2101, CS1591, CA1416, CA1806
@@ -19,6 +21,9 @@ namespace Ephemera.Win32
     public class ConsoleWindow
     {
         #region Native Methods
+
+        #region Definitions
+
         //const int STD_OUTPUT_HANDLE = -11;
         //const int STD_ERROR_HANDLE = -12;
         //const int MY_CODE_PAGE = 437;
@@ -46,7 +51,7 @@ namespace Ephemera.Win32
         }
 
         static readonly IntPtr InvalidHandleValue = new(-1);
-
+        #endregion
 
         [DllImport("kernel32.dll", EntryPoint = "GetStdHandle", SetLastError = true, CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         static extern IntPtr GetStdHandle(int nStdHandle);
@@ -95,10 +100,7 @@ namespace Ephemera.Win32
 
             var outStream = Console.OpenStandardOutput();
             var errStream = Console.OpenStandardError();
-
-            //Encoding encoding = Encoding.GetEncoding(MY_CODE_PAGE);
-            Encoding encoding = Encoding.GetEncoding(0);
-
+            Encoding encoding = Encoding.GetEncoding(0); //was MY_CODE_PAGE
 
             StreamWriter standardOutput = new(outStream, encoding), standardError = new(errStream, encoding);
             Screen? screen = null;
@@ -111,7 +113,7 @@ namespace Ephemera.Win32
             }
             catch (Exception e)
             {
-                //???
+                // was ignored
                 Debug.WriteLine(e.Message);
             }
 
@@ -160,19 +162,14 @@ namespace Ephemera.Win32
                 {
                     var workingArea = screen.WorkingArea;
                     IntPtr hConsole = GetConsoleWindow();
-                    MoveWindow(hConsole, workingArea.Left, workingArea.Top, workingArea.Width, workingArea.Height, true);
+                    WM.MoveWindow(hConsole, new(workingArea.Left, workingArea.Top));
+                    WM.ResizeWindow(hConsole, new(workingArea.Width, workingArea.Height));
                 }
             }
             catch (Exception e) // Could be redirected
             {
                 Debug.WriteLine(e.ToString());
             }
-        }
-
-        public static void Maximize()
-        {
-            Process p = Process.GetCurrentProcess();
-            ShowWindow(p.MainWindowHandle, 3); // SW_MAXIMIZE = 3
         }
 
         public static void UnredirectConsole(out IntPtr stdOut, out IntPtr stdIn, out IntPtr stdErr)
