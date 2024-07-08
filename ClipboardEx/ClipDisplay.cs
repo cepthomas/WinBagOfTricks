@@ -11,6 +11,7 @@ using System.Drawing.Printing;
 using Ephemera.NBagOfTricks;
 using Ephemera.NBagOfUis;
 
+#pragma warning disable CS1591
 
 namespace ClipboardEx
 {
@@ -28,13 +29,9 @@ namespace ClipboardEx
 
         public enum ClipRequestType { Click, DoubleClick }
 
-        public class ClipEventArgs : EventArgs
+        public class ClipEventArgs(ClipRequestType ce) : EventArgs
         {
-            public ClipRequestType EventType { get; private set; } = ClipRequestType.Click;
-            public ClipEventArgs(ClipRequestType ce)
-            {
-                EventType = ce;
-            }
+            public ClipRequestType EventType { get; private set; } = ce;
         }
         #endregion
 

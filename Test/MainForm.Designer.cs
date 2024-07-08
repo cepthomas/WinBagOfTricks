@@ -29,11 +29,8 @@
         private void InitializeComponent()
         {
             txtViewer = new Ephemera.NBagOfUis.TextViewer();
-            btnTrayEx = new System.Windows.Forms.Button();
-            btnJumpListEx = new System.Windows.Forms.Button();
-            btnClipboardEx = new System.Windows.Forms.Button();
-            button3 = new System.Windows.Forms.Button();
-            button4 = new System.Windows.Forms.Button();
+            btn1 = new System.Windows.Forms.Button();
+            btn2 = new System.Windows.Forms.Button();
             SuspendLayout();
             // 
             // txtViewer
@@ -49,66 +46,33 @@
             txtViewer.TabIndex = 58;
             txtViewer.WordWrap = true;
             // 
-            // btnTrayEx
+            // btn1
             // 
-            btnTrayEx.Location = new System.Drawing.Point(14, 7);
-            btnTrayEx.Name = "btnTrayEx";
-            btnTrayEx.Size = new System.Drawing.Size(100, 29);
-            btnTrayEx.TabIndex = 59;
-            btnTrayEx.Text = "TrayEx";
-            btnTrayEx.UseVisualStyleBackColor = true;
-            btnTrayEx.Click += TrayEx_Click;
+            btn1.Location = new System.Drawing.Point(314, 7);
+            btn1.Name = "btn1";
+            btn1.Size = new System.Drawing.Size(100, 29);
+            btn1.TabIndex = 62;
+            btn1.Text = "btn1";
+            btn1.UseVisualStyleBackColor = true;
+            btn1.Click += Btn1_Click;
             // 
-            // btnJumpListEx
+            // btn2
             // 
-            btnJumpListEx.Location = new System.Drawing.Point(114, 7);
-            btnJumpListEx.Name = "btnJumpListEx";
-            btnJumpListEx.Size = new System.Drawing.Size(100, 29);
-            btnJumpListEx.TabIndex = 60;
-            btnJumpListEx.Text = "JumpListEx";
-            btnJumpListEx.UseVisualStyleBackColor = true;
-            btnJumpListEx.Click += JumpListEx_Click;
-            // 
-            // btnClipboardEx
-            // 
-            btnClipboardEx.Location = new System.Drawing.Point(214, 7);
-            btnClipboardEx.Name = "btnClipboardEx";
-            btnClipboardEx.Size = new System.Drawing.Size(100, 29);
-            btnClipboardEx.TabIndex = 61;
-            btnClipboardEx.Text = "ClipboardEx";
-            btnClipboardEx.UseVisualStyleBackColor = true;
-            btnClipboardEx.Click += ClipboardEx_Click;
-            // 
-            // button3
-            // 
-            button3.Location = new System.Drawing.Point(314, 7);
-            button3.Name = "button3";
-            button3.Size = new System.Drawing.Size(100, 29);
-            button3.TabIndex = 62;
-            button3.Text = "button3";
-            button3.UseVisualStyleBackColor = true;
-            button3.Click += button3_Click;
-            // 
-            // button4
-            // 
-            button4.Location = new System.Drawing.Point(414, 7);
-            button4.Name = "button4";
-            button4.Size = new System.Drawing.Size(100, 29);
-            button4.TabIndex = 63;
-            button4.Text = "button4";
-            button4.UseVisualStyleBackColor = true;
-            button4.Click += button4_Click;
+            btn2.Location = new System.Drawing.Point(414, 7);
+            btn2.Name = "btn2";
+            btn2.Size = new System.Drawing.Size(100, 29);
+            btn2.TabIndex = 63;
+            btn2.Text = "btn2";
+            btn2.UseVisualStyleBackColor = true;
+            btn2.Click += Btn2_Click;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(869, 400);
-            Controls.Add(button4);
-            Controls.Add(button3);
-            Controls.Add(btnClipboardEx);
-            Controls.Add(btnJumpListEx);
-            Controls.Add(btnTrayEx);
+            Controls.Add(btn2);
+            Controls.Add(btn1);
             Controls.Add(txtViewer);
             Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             Name = "MainForm";
@@ -119,11 +83,8 @@
         #endregion
 
         private Ephemera.NBagOfUis.TextViewer txtViewer;
-        private System.Windows.Forms.Button btnTrayEx;
-        private System.Windows.Forms.Button btnJumpListEx;
-        private System.Windows.Forms.Button btnClipboardEx;
-        private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button btn1;
+        private System.Windows.Forms.Button btn2;
     }
 }
 

@@ -10,7 +10,7 @@ using System.Drawing;
 using Ephemera.NBagOfTricks;
 
 
-#pragma warning disable SYSLIB1054, CA1401, CA2101
+#pragma warning disable SYSLIB1054, CA1401, CA2101, CS1591, CA1416, IDE0058, CA1806
 
 namespace Ephemera.Win32
 {
@@ -139,7 +139,7 @@ namespace Ephemera.Win32
         public static AppWindowInfo GetAppWindowInfo(IntPtr handle)
         {
             IntPtr threadId = GetWindowThreadProcessId(handle, out IntPtr pid);
-            GetWindowRect(handle, out Rect rect);
+            //GetWindowRect(handle, out Rect rect);
 
             StringBuilder sb = new(1024);
             GetWindowText(handle, sb, sb.Capacity);

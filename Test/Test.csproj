@@ -17,16 +17,10 @@
         <Nullable>enable</Nullable>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <SatelliteResourceLanguages>none</SatelliteResourceLanguages>
+        <Platforms>x64</Platforms>
     </PropertyGroup>
 
-    <!-- <ItemGroup>
-        <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-    </ItemGroup> -->
-
     <ItemGroup>
-      <ProjectReference Include="..\ClipboardEx\ClipboardEx.csproj" />
-      <ProjectReference Include="..\JumpListEx\JumpListEx.csproj" />
-      <ProjectReference Include="..\TrayEx\TrayEx.csproj" />
       <ProjectReference Include="..\Win32\Win32.csproj" />
     </ItemGroup>
 

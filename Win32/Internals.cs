@@ -4,9 +4,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 
-// TODO Consolidate all DllImport?
-// TODO suppress/fix warnings: https://stackoverflow.com/a/35819594  https://stackoverflow.com/a/67127595 
-#pragma warning disable SYSLIB1054, CA1401, CA2101
+#pragma warning disable SYSLIB1054, CA1401, CA2101, CS1591
 
 namespace Ephemera.Win32
 {
@@ -111,7 +109,7 @@ namespace Ephemera.Win32
         }
 
         /// <summary>
-        /// Streamlined version of the real function.
+        /// Streamlined version of the real function. TODO1 clean up all ShellExecute()
         /// </summary>
         /// <param name="verb">Standard verb</param>
         /// <param name="path">Where</param>
@@ -292,10 +290,14 @@ namespace Ephemera.Win32
         static extern int RegisterWindowMessage(string lpString);
 
         [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
-        static extern int DeregisterShellHookWindow(IntPtr hWnd);
+        static extern int RegisterShellHookWindow(IntPtr hWnd);
 
         [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
-        static extern int RegisterShellHookWindow(IntPtr hWnd);
+        static extern int DeregisterShellHookWindow(IntPtr hWnd);
+
+        // inject a keystroke.
+        [DllImport("user32.dll")]
+        static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
 
         // Keyboard hooks.
         [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
@@ -303,22 +305,6 @@ namespace Ephemera.Win32
 
         [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
         static extern bool UnregisterHotKey(IntPtr hWnd, int id);
-        #endregion
-
-        #region kernel32.dll
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
-        private static extern bool FreeConsole();
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
-        private static extern bool DetachConsole();
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool AllocConsole();
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool AttachConsole(uint dwProcessId);
         #endregion
 
         #endregion

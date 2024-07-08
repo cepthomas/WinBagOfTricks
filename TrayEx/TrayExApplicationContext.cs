@@ -10,6 +10,8 @@ using System.Windows.Forms;
 using Ephemera.NBagOfTricks;
 using Ephemera.NBagOfUis;
 
+#pragma warning disable CA1822
+
 namespace TrayEx
 {
     /// <summary>Framework for running application as a tray app.</summary>
@@ -21,7 +23,7 @@ namespace TrayEx
         readonly Container _components = new();
         readonly NotifyIcon _notifyIcon;
         readonly Timer _timer = new();
-        readonly List<string> _messages = new();
+        readonly List<string> _messages = [];
         #endregion
 
         #region Lifecycle
@@ -74,7 +76,7 @@ namespace TrayEx
         {
             Tell($"ApplicationExit_Handler()");
 
-            _notifyIcon.ContextMenuStrip.Dispose();
+            _notifyIcon.ContextMenuStrip?.Dispose();
             _notifyIcon.Visible = false;
             _notifyIcon.Dispose();
             _icon1.Dispose();

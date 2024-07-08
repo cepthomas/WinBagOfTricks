@@ -11,9 +11,6 @@ using System.Drawing.Design;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using Ephemera.NBagOfTricks;
-using TrayEx;
-using JumpListEx;
-using ClipboardEx;
 using Ephemera.Win32;
 
 
@@ -42,8 +39,6 @@ namespace Test
             txtViewer.BackColor = Color.Cornsilk;
             txtViewer.MatchColors.Add("ERR", Color.LightPink);
             txtViewer.MatchColors.Add("WRN", Color.Plum);
-
-            //Text = $"WinBagOfTricks {MiscUtils.GetVersionString()} - No file loaded";
         }
 
         /// <summary>
@@ -55,27 +50,12 @@ namespace Test
         }
         #endregion
 
-        private void TrayEx_Click(object sender, EventArgs e)
-        {
-            using var app = new TrayEx.TrayExApplicationContext();
-        }
-
-        private void JumpListEx_Click(object sender, EventArgs e)
-        {
-            using var app = new JumpListEx.JumpListEx();
-        }
-
-        private void ClipboardEx_Click(object sender, EventArgs e)
-        {
-            using var app = new ClipboardEx.ClipboardEx();
-        }
-
-        private void button3_Click(object sender, EventArgs e)
+        private void Btn1_Click(object sender, EventArgs e)
         {
 
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void Btn2_Click(object sender, EventArgs e)
         {
 
         }

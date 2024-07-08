@@ -19,6 +19,7 @@ using Ephemera.NBagOfUis;
 
 // TODO persist clip data.
 
+#pragma warning disable CS1591, SYSLIB1054
 
 namespace ClipboardEx
 {
@@ -61,13 +62,13 @@ namespace ClipboardEx
         readonly IntPtr _hhook = IntPtr.Zero;
 
         /// <summary>All handled clipboard API messages.</summary>
-        readonly Dictionary<int, MsgSpec> _clipboardMessages = new();
+        readonly Dictionary<int, MsgSpec> _clipboardMessages = [];
 
         /// <summary>All clips in the collection.</summary>
         readonly LinkedList<Clip> _clips = new();
 
         /// <summary>All clip displays.</summary>
-        readonly List<ClipDisplay> _displays = new();
+        readonly List<ClipDisplay> _displays = [];
 
         /// <summary>Key status.</summary>
         bool _letterPressed = false;
@@ -98,40 +99,25 @@ namespace ClipboardEx
         #endregion
 
         #region Interop Methods
-        internal class NativeMethods
+        class NativeMethods
         {
             [DllImport("User32.dll")]
-            internal static extern IntPtr SetClipboardViewer(IntPtr hWndNewViewer);
+            static extern IntPtr SetClipboardViewer(IntPtr hWndNewViewer);
 
             [DllImport("User32.dll", CharSet = CharSet.Auto)]
-            internal static extern bool ChangeClipboardChain(IntPtr hWndRemove, IntPtr hWndNewNext);
-
-            [DllImport("user32.dll", CharSet = CharSet.Auto)]
-            internal static extern int SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+            static extern bool ChangeClipboardChain(IntPtr hWndRemove, IntPtr hWndNewNext);
 
             [DllImport("user32.dll")]
-            internal static extern IntPtr GetForegroundWindow();
-
-            [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-            internal static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+            static extern int CallNextHookEx(IntPtr idHook, int nCode, int wParam, ref KBDLLHOOKSTRUCT lParam);
 
             [DllImport("user32.dll")]
-            internal static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+            static extern IntPtr SetWindowsHookEx(HookType hookType, HookProc lpfn, IntPtr hMod, uint dwThreadId);
 
             [DllImport("user32.dll")]
-            internal static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
-
-            [DllImport("user32.dll")]
-            internal static extern int CallNextHookEx(IntPtr idHook, int nCode, int wParam, ref KBDLLHOOKSTRUCT lParam);
-
-            [DllImport("user32.dll")]
-            internal static extern IntPtr SetWindowsHookEx(HookType hookType, HookProc lpfn, IntPtr hMod, uint dwThreadId);
-
-            [DllImport("user32.dll")]
-            internal static extern bool UnhookWindowsHookEx(IntPtr hInstance);
+            static extern bool UnhookWindowsHookEx(IntPtr hInstance);
 
             [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-            internal static extern IntPtr GetModuleHandle(string lpModuleName);
+            static extern IntPtr GetModuleHandle(string lpModuleName);
         }
         #endregion
 
@@ -262,23 +248,23 @@ namespace ClipboardEx
             base.OnFormClosing(e);
         }
 
-        /// <summary>
-        /// Override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources.
-        /// </summary>
-        ~ClipboardEx()
-        {
-            Dispose(false);
-        }
+        ///// <summary>
+        ///// Override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources.
+        ///// </summary>
+        //~ClipboardEx()
+        //{
+        //    Dispose(false);
+        //}
 
-        /// <summary>
-        /// Boilerplate.
-        /// </summary>
-        public new void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-            base.Dispose();
-        }
+        ///// <summary>
+        ///// Boilerplate.
+        ///// </summary>
+        //public new void Dispose()
+        //{
+        //    Dispose(true);
+        //    GC.SuppressFinalize(this);
+        //    base.Dispose();
+        //}
 
         /// <summary>
         /// Boilerplate.
@@ -369,9 +355,9 @@ namespace ClipboardEx
         {
             uint ret = 0;
 
-            if (_clipboardMessages is not null && _clipboardMessages.ContainsKey(m.Msg))
+            if (_clipboardMessages is not null && _clipboardMessages.TryGetValue(m.Msg, out MsgSpec? value))
             {
-                MsgSpec sp = _clipboardMessages[m.Msg];
+                MsgSpec sp = value;
                 Tell($"WndProc message {sp.Name} HWnd:{m.HWnd} Msg:{m.Msg} WParam:{m.WParam} LParam:{m.LParam} ");
                 
                 // Call handler.
@@ -458,7 +444,7 @@ namespace ClipboardEx
                             else if (Clipboard.ContainsImage())
                             {
                                 clip.Ctype = ClipType.Image;
-                                clip.Bitmap = (Bitmap)Clipboard.GetImage();
+                                clip.Bitmap = Clipboard.GetImage() as Bitmap;
                             }
                             else
                             {
@@ -559,11 +545,18 @@ namespace ClipboardEx
                         if (i >= 0 && i < _clips.Count)
                         {
                             Clip clip = _clips.ElementAt(i);
-                            Clipboard.SetDataObject(clip.Data);
-                            DoPaste();
-                            // Push to head of class.
-                            _clips.Remove(clip);
-                            _clips.AddFirst(clip);
+                            if (clip.Data is not null)
+                            {
+                                Clipboard.SetDataObject(clip.Data);
+                                DoPaste();
+                                // Push to head of class.
+                                _clips.Remove(clip);
+                                _clips.AddFirst(clip);
+                            }
+                            else
+                            {
+                                _clips.Remove(clip);
+                            }
                             UpdateClipDisplays();
                             Visible = _settings.Debug;
                         }

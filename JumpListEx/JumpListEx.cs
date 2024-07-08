@@ -16,6 +16,7 @@ using Ephemera.NBagOfUis;
 
 namespace JumpListEx
 {
+    /// <summary>The jumplist.</summary>
     public partial class JumpListEx : Form
     {
         /// <summary>The jumplist.</summary>
@@ -113,7 +114,7 @@ namespace JumpListEx
             }
 
             // Most recent first.
-            List<JumpListLink> recentItems = new();
+            List<JumpListLink> recentItems = [];
             foreach (KeyValuePair<FileInfo, FileInfo> scut in finfos.OrderBy(key => key.Key.LastAccessTime).Reverse())
             {
                 JumpListLink jlink = new(scut.Value.FullName, scut.Key.Name);

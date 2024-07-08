@@ -8,7 +8,7 @@ using System.Threading;
 // From https://github.com/MrM40/W-WinClipboard
 // TODO could use some tidying up.
 
-#pragma warning disable SYSLIB1054, CA1401, CA2101
+#pragma warning disable SYSLIB1054, CA1401, CA2101, CS1591
 
 namespace Ephemera.Win32
 {
@@ -158,11 +158,11 @@ namespace Ephemera.Win32
         }
         #endregion
 
-        [DllImport("User32.dll", SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool IsClipboardFormatAvailable(uint format);
 
-        [DllImport("User32.dll", SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true)]
         static extern IntPtr GetClipboardData(uint uFormat);
 
         [DllImport("user32.dll", SetLastError = true)]
