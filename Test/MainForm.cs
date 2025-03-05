@@ -37,8 +37,8 @@ namespace Test
             txtViewer.Font = new("Lucida Console", 9);
             txtViewer.WordWrap = true;
             txtViewer.BackColor = Color.Cornsilk;
-            txtViewer.MatchColors.Add("ERR", Color.LightPink);
-            txtViewer.MatchColors.Add("WRN", Color.Plum);
+            txtViewer.MatchText.Add("ERR", Color.LightPink);
+            txtViewer.MatchText.Add("WRN", Color.Plum);
         }
 
         /// <summary>

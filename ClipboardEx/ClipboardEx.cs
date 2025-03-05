@@ -207,8 +207,8 @@ namespace ClipboardEx
             }
 
             // Init controls.
-            tvInfo.MatchColors.Add("ERR", Color.Pink);
-            tvInfo.MatchColors.Add("DBG", Color.LightGreen);
+            tvInfo.MatchText.Add("ERR", Color.Pink);
+            tvInfo.MatchText.Add("DBG", Color.LightGreen);
             tvInfo.BackColor = Color.Cornsilk;
 
             if(_debug)

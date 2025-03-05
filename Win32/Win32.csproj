@@ -10,7 +10,7 @@
         <AssemblyName>Ephemera.Win32</AssemblyName>
         <RootNamespace>Ephemera.Win32</RootNamespace>
         <Deterministic>False</Deterministic>
-        <Version>0.9.0</Version>
+        <Version>1.2.0</Version>
         <SatelliteResourceLanguages>none</SatelliteResourceLanguages>
         <Company>Ephemera Inc</Company>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
