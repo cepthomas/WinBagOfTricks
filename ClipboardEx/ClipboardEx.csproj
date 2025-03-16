@@ -7,7 +7,8 @@
         <AssemblyName>ClipboardEx</AssemblyName>
         <RootNamespace>ClipboardEx</RootNamespace>
         <Deterministic>False</Deterministic>
-        <Version>$([System.DateTime]::UtcNow.ToString(yy.MM.dd))</Version>
+        <Version>1.2.0</Version>
+        <!-- <Version>$([System.DateTime]::UtcNow.ToString(yy.MM.dd))</Version> -->
         <Description>WinBagOfTricks clipboard application</Description>
         <Copyright>MIT License</Copyright>
         <OutputPath>bin\</OutputPath>
