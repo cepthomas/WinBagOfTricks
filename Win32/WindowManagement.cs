@@ -183,7 +183,7 @@ namespace Ephemera.Win32
         public static bool ShowWindow(IntPtr handle)
         {
             return ShowWindow(handle, 1);
-            //SW_HIDE = 0, TODO1 these are defined in internals.
+            //SW_HIDE = 0, TODO these are defined in internals.
             //SW_SHOWNORMAL = 1,
             //SW_SHOWMINIMIZED = 2,
             //SW_SHOWMAXIMIZED = 3,

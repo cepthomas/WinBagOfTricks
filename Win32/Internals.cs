@@ -110,7 +110,7 @@ namespace Ephemera.Win32
         }
 
         /// <summary>
-        /// Streamlined version of the real function. TODO1 clean up all ShellExecute()
+        /// Streamlined version of the real function. TODO clean up all ShellExecute()
         /// </summary>
         /// <param name="verb">Standard verb</param>
         /// <param name="path">Where</param>

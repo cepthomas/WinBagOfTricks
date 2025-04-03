@@ -160,7 +160,7 @@ namespace ClipboardEx
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         static extern IntPtr GetModuleHandle(string lpModuleName);
 
-        // TODO move these two into W#@.
+        // TODO move these two into Win32.Internals.
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static extern int SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
         // inject a keystroke.
