@@ -7,7 +7,7 @@
         <AssemblyName>JumpListEx</AssemblyName>
         <RootNamespace>JumpListEx</RootNamespace>
         <Deterministic>False</Deterministic>
-        <Version>1.2.0</Version>
+        <Version>2.0.0</Version>
         <!-- <Version>$([System.DateTime]::UtcNow.ToString(yy.MM.dd))</Version> -->
         <Description>WinBagOfTricks taskbar application</Description>
         <Copyright>MIT License</Copyright>

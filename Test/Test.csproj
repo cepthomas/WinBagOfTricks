@@ -7,7 +7,6 @@
         <AssemblyName>WinBagOfTricks.Test</AssemblyName>
         <RootNamespace>WinBagOfTricks.Test</RootNamespace>
         <Deterministic>False</Deterministic>
-        <Version>1.2.0</Version>
         <!-- <Version>$([System.DateTime]::UtcNow.ToString(yy.MM.dd))</Version> -->
         <Description>WinBagOfTricks tester</Description>
         <Copyright>MIT License</Copyright>

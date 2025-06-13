@@ -13,8 +13,6 @@ using W32 = Ephemera.Win32.Internals;
 using WM = Ephemera.Win32.WindowManagement;
 
 
-#pragma warning disable CA1822
-
 namespace TrayEx
 {
     /// <summary>Framework for running application as a tray app.</summary>
@@ -47,8 +45,8 @@ namespace TrayEx
             ctxm.Opening += ContextMenu_Opening;
 
             var sf = (Bitmap)Image.FromFile("glyphicons-22-snowflake.png"); // 26x26
-            var img1 = GraphicsUtils.ColorizeBitmap(sf, Color.LightGreen);
-            var img2 = GraphicsUtils.ColorizeBitmap(sf, Color.Red);
+            var img1 = BitmapUtils.ColorizeBitmap(sf, Color.LightGreen);
+            var img2 = BitmapUtils.ColorizeBitmap(sf, Color.Red);
             _icon1 = IconFromImage(img1);
             _icon2 = IconFromImage(img2);
 
