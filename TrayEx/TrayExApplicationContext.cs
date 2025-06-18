@@ -45,8 +45,8 @@ namespace TrayEx
             ctxm.Opening += ContextMenu_Opening;
 
             var sf = (Bitmap)Image.FromFile("glyphicons-22-snowflake.png"); // 26x26
-            var img1 = BitmapUtils.ColorizeBitmap(sf, Color.LightGreen);
-            var img2 = BitmapUtils.ColorizeBitmap(sf, Color.Red);
+            var img1 = sf.Colorize(Color.LightGreen);
+            var img2 = sf.Colorize(Color.Red);
             _icon1 = IconFromImage(img1);
             _icon2 = IconFromImage(img2);
 
