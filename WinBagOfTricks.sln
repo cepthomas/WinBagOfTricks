@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JumpListEx", "JumpListEx\Ju
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Win32", "Win32\Win32.csproj", "{87FC41AB-BA24-43E1-8C78-BA68549C74EF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{398AC049-17A4-494D-B1A6-67683F00AFF1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -35,10 +33,6 @@ Global
 		{87FC41AB-BA24-43E1-8C78-BA68549C74EF}.Debug|x64.Build.0 = Debug|x64
 		{87FC41AB-BA24-43E1-8C78-BA68549C74EF}.Release|x64.ActiveCfg = Release|x64
 		{87FC41AB-BA24-43E1-8C78-BA68549C74EF}.Release|x64.Build.0 = Release|x64
-		{398AC049-17A4-494D-B1A6-67683F00AFF1}.Debug|x64.ActiveCfg = Debug|x64
-		{398AC049-17A4-494D-B1A6-67683F00AFF1}.Debug|x64.Build.0 = Debug|x64
-		{398AC049-17A4-494D-B1A6-67683F00AFF1}.Release|x64.ActiveCfg = Release|x64
-		{398AC049-17A4-494D-B1A6-67683F00AFF1}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
