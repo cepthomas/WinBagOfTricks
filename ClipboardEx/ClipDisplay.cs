@@ -114,7 +114,7 @@ namespace ClipboardEx
         {
             picImage.Show();
             rtbText.Hide();
-            picImage.Image = fit ? BitmapUtils.ResizeBitmap(bmp, Width, Height) : bmp;
+            picImage.Image = fit ? bmp.Resize(Width, Height) : bmp;
         }
 
         /// <summary>
