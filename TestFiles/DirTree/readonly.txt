@@ -1,0 +1,6 @@
+An UnauthorizedAccessException means one of 4 things:
+
+    The caller does not have the required permission.
+    The file is an executable file that is in use.
+    Path is a directory.
+    Path specified a read-only file.

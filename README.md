@@ -9,7 +9,7 @@ A place to play with some Windows stuff.
 - A simple taskbar/jumplist manager. Still works and could be useful.
 - General purpose Win32 library that is used in my other applications.
 - Requires VS2022 and .NET8.
-
+- Bunch of test files.
 
 # External Components
 
