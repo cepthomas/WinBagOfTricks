@@ -55,7 +55,7 @@ namespace ClipboardEx
 
         #region Fields
         /// <summary>Cosmetics.</summary>
-        readonly Color _controlColor = Color.LimeGreen;
+        readonly Color _drawColor = Color.LimeGreen;
 
         /// <summary></summary>
         readonly bool _fitImage = true;
@@ -635,9 +635,9 @@ namespace ClipboardEx
                     bool match = _winPressed && _letterPressed;
 
                     // Diagnostics.
-                    lblWin.BackColor = _winPressed ? _controlColor : Color.Transparent;
-                    lblLetter.BackColor = _letterPressed ? _controlColor : Color.Transparent;
-                    lblMatch.BackColor = match ? _controlColor : Color.Transparent;
+                    lblWin.BackColor = _winPressed ? _drawColor : Color.Transparent;
+                    lblLetter.BackColor = _letterPressed ? _drawColor : Color.Transparent;
+                    lblMatch.BackColor = match ? _drawColor : Color.Transparent;
 
                     if (match)
                     {
