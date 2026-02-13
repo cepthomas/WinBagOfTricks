@@ -207,11 +207,14 @@ namespace ClipboardEx
             }
 
             // Init controls.
-            tvInfo.MatchText.Add("ERR", Color.Pink);
-            tvInfo.MatchText.Add("DBG", Color.LightGreen);
             tvInfo.BackColor = Color.Cornsilk;
+            tvInfo.Matchers =
+            [
+                new("ERR", Color.Red),
+                new("WRN", Color.Green),
+            ];
 
-            if(_debug)
+            if (_debug)
             {
                 rtbText.LoadFile(@"..\..\\ex.rtf");
             }
@@ -669,7 +672,7 @@ namespace ClipboardEx
         void Tell(string msg)
         {
             string s = $"{DateTime.Now:mm\\:ss\\.fff} {msg}";
-            tvInfo.AppendLine(s);
+            tvInfo.Append(s);
         }
         #endregion
     }

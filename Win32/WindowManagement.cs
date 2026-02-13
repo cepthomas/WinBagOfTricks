@@ -222,9 +222,7 @@ namespace Ephemera.Win32
         }
         #endregion
 
-        #region Native Methods
-
-        #region Definitions
+        #region Native Win32
         [StructLayout(LayoutKind.Sequential)]
         struct Rect
         {
@@ -259,7 +257,6 @@ namespace Ephemera.Win32
             // The Windows version of the application that created the window.
             public ushort wCreatorVersion;
         }
-        #endregion
 
         [DllImport("user32.dll")]
         static extern bool SetForegroundWindow(IntPtr hWnd);
