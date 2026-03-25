@@ -42,7 +42,7 @@ namespace TrayEx
             ctxm.Items.Add("icon", null, Menu_Click);
             ctxm.Items.Add(new ToolStripSeparator());
             ctxm.Items.Add("close", null, Menu_Click);
-            ctxm.Opening += ContextMenu_Opening;
+//            ctxm.Opening += ContextMenu_Opening;
 
             var sf = (Bitmap)Image.FromFile("glyphicons-22-snowflake.png"); // 26x26
             var img1 = sf.Colorize(Color.LightGreen);
@@ -55,7 +55,8 @@ namespace TrayEx
                 Icon = _icon1,
                 Text = "I am a tray application!",
                 ContextMenuStrip = ctxm,
-                Visible = true
+                Visible = true,
+                BalloonTipText = "OK",
             };
 
             _notifyIcon.MouseClick += Nicon_MouseClick;

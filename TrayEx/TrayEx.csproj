@@ -54,6 +54,12 @@
         </EmbeddedResource>
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="glyphicons-22-snowflake.png">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
  <!--    <ItemGroup>
         <None Update="glyphicons-22-snowflake.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
