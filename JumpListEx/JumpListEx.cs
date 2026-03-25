@@ -34,7 +34,7 @@ namespace JumpListEx
         {
             var args = Environment.GetCommandLineArgs();
 
-            if(args.Contains("config_taskbar"))
+            if (args.Contains("config_taskbar"))
             {
                 MessageBox.Show("Do some configuring then exit");
                 Environment.Exit(0);
