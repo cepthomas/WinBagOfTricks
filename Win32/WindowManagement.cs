@@ -8,9 +8,8 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Drawing;
 using Ephemera.NBagOfTricks;
+using W32 = Ephemera.Win32.Internals;
 
-
-#pragma warning disable SYSLIB1054, CA1401, CA2101, CS1591, CA1416, IDE0058, CA1806
 
 
 namespace Ephemera.Win32
@@ -86,8 +85,10 @@ namespace Ephemera.Win32
             List<IntPtr> procids = [];
 
             // Get all processes.
-            Process[] procs = Process.GetProcessesByName(appName);
-            procs.ForEach(p => procids.Add(p.Id));
+            foreach (var p in Process.GetProcessesByName(appName))
+            {
+                procids.Add(p.Id);
+            }
 
             // Enumerate all windows. https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-enumwindows
             List<IntPtr> visHandles = [];
@@ -105,7 +106,6 @@ namespace Ephemera.Win32
             foreach (var vh in visHandles)
             {
                 var wi = GetAppWindowInfo(vh);
-
                 var realWin = wi.Title != "" && wi.Title != "Program Manager";
                 if (procids.Contains(wi.Pid) && (includeAnonymous || realWin))
                 {
@@ -126,9 +126,12 @@ namespace Ephemera.Win32
             List<IntPtr> handles = [];
 
             // Get all processes. There is one entry per separate process.
-            Process[] procs = Process.GetProcessesByName(appName);
             // Get each main window.
-            procs.ForEach(p => handles.Add(p.MainWindowHandle));
+            foreach (var p in Process.GetProcessesByName(appName))
+            {
+                handles.Add(p.MainWindowHandle);
+            }
+
             return handles;
         }
 
@@ -143,7 +146,7 @@ namespace Ephemera.Win32
             //GetWindowRect(handle, out Rect rect);
 
             StringBuilder sb = new(1024);
-            GetWindowText(handle, sb, sb.Capacity);
+            var hres = GetWindowText(handle, sb, sb.Capacity);
 
             WindowInfo wininfo = new();
             GetWindowInfo(handle, ref wininfo);
@@ -182,11 +185,7 @@ namespace Ephemera.Win32
         /// <returns></returns>        
         public static bool ShowWindow(IntPtr handle)
         {
-            return ShowWindow(handle, 1);
-            //SW_HIDE = 0, TODO these are defined in internals.
-            //SW_SHOWNORMAL = 1,
-            //SW_SHOWMINIMIZED = 2,
-            //SW_SHOWMAXIMIZED = 3,
+            return ShowWindow(handle, W32.ShowCommands.SW_SHOWNORMAL);
         }
 
         /// <summary>
@@ -316,7 +315,7 @@ namespace Ephemera.Win32
         /// <param name="hwnd">handle to the window</param>
         /// <param name="lpString">StringBuilder to receive the result</param>
         /// <param name="cch">Max number of characters to copy to the buffer, including the null character. If the text exceeds this limit, it is truncated</param>
-        [DllImport("user32.dll", EntryPoint = "GetWindowTextA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        [DllImport("user32.dll", EntryPoint = "GetWindowTextA", CharSet = CharSet.Unicode, SetLastError = true, ExactSpelling = true)]
         static extern int GetWindowText(IntPtr hwnd, StringBuilder lpString, int cch);
 
         [DllImport("user32.dll", EntryPoint = "GetWindowTextLengthA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]

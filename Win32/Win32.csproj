@@ -20,6 +20,14 @@
         <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      <NoWarn>CS1591;SYSLIB1054;CA1822</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      <NoWarn>CS1591;SYSLIB1054;CA1822</NoWarn>
+    </PropertyGroup>
+
     <ItemGroup>
         <Reference Include="Ephemera.NBagOfTricks">
             <HintPath>..\lib\Ephemera.NBagOfTricks.dll</HintPath>

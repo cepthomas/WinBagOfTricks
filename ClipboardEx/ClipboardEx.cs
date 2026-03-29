@@ -1,19 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.IO;
-using System.Drawing.Design;
-using System.Text.Json.Serialization;
-using System.Text.Json;
 using Ephemera.NBagOfTricks;
 using Ephemera.NBagOfUis;
 using W32 = Ephemera.Win32.Internals;
@@ -21,7 +14,6 @@ using WM = Ephemera.Win32.WindowManagement;
 
 // TODO persist clip data.
 
-#pragma warning disable CS1591, SYSLIB1054, CA1822
 
 namespace ClipboardEx
 {
@@ -96,20 +88,6 @@ namespace ClipboardEx
         #region Native Methods
 
         #region Definitions
-        // Windows messages.
-        const int WM_KEYDOWN = 0x100;
-        //const int WM_KEYUP = 0x101;
-        const int WM_SYSKEYDOWN = 0x104; // when the user presses the F10 key (menu bar) or holds down the ALT key and then presses another key
-        //const int WM_SYSKEYUP = 0x105; // when the user releases a key that was pressed while the ALT key was held down
-        const int WM_DRAWCLIPBOARD = 0x0308;
-        const int WM_CHANGECBCHAIN = 0x030D;
-        const int WM_CLIPBOARDUPDATE = 0x031D;
-        const int WM_DESTROYCLIPBOARD = 0x0307;
-        const int WM_ASKCBFORMATNAME = 0x030C;
-        const int WM_CLEAR = 0x0303;
-        const int WM_COPY = 0x0301;
-        const int WM_CUT = 0x0300;
-        const int WM_PASTE = 0x0302;
 
         [Flags]
         public enum KBDLLHOOKSTRUCTFlags : uint
@@ -159,13 +137,6 @@ namespace ClipboardEx
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         static extern IntPtr GetModuleHandle(string lpModuleName);
-
-        // TODO move these two into Win32.Internals.
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        static extern int SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
-        // inject a keystroke.
-        [DllImport("user32.dll")]
-        static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
         #endregion
 
         #region Lifecycle
@@ -227,15 +198,15 @@ namespace ClipboardEx
             // HL messages of interest.
             _clipboardMessages = new()
             {
-                { WM_DRAWCLIPBOARD, new("WM_DRAWCLIPBOARD", CbDraw, "Sent to the first window in the clipboard viewer chain when the content of the clipboard changes aka copy/cut.") },
-                { WM_CHANGECBCHAIN, new("WM_CHANGECBCHAIN", CbChange, "Sent to the first window in the clipboard viewer chain when a window is being removed from the chain.") },
-                { WM_CLIPBOARDUPDATE, new("WM_CLIPBOARDUPDATE", CbDefault, "Sent when the contents of the clipboard have changed.") },
-                { WM_DESTROYCLIPBOARD, new("WM_DESTROYCLIPBOARD", CbDefault, "Sent to the clipboard owner when a call to the EmptyClipboard function empties the clipboard.") },
-                { WM_ASKCBFORMATNAME, new("WM_ASKCBFORMATNAME", CbDefault, "Sent to the clipboard owner by a clipboard viewer window to request the name of a CF_OWNERDISPLAY clipboard format.") },
-                { WM_CLEAR, new("WM_CLEAR", CbDefault, "Clear") },
-                { WM_COPY, new("WM_COPY", CbDefault, "Copy") },
-                { WM_CUT, new("WM_CUT", CbDefault, "Cut") },
-                { WM_PASTE, new("WM_PASTE", CbDefault, "Paste") }
+                { W32.WM_DRAWCLIPBOARD, new("WM_DRAWCLIPBOARD", CbDraw, "Sent to the first window in the clipboard viewer chain when the content of the clipboard changes aka copy/cut.") },
+                { W32.WM_CHANGECBCHAIN, new("WM_CHANGECBCHAIN", CbChange, "Sent to the first window in the clipboard viewer chain when a window is being removed from the chain.") },
+                { W32.WM_CLIPBOARDUPDATE, new("WM_CLIPBOARDUPDATE", CbDefault, "Sent when the contents of the clipboard have changed.") },
+                { W32.WM_DESTROYCLIPBOARD, new("WM_DESTROYCLIPBOARD", CbDefault, "Sent to the clipboard owner when a call to the EmptyClipboard function empties the clipboard.") },
+                { W32.WM_ASKCBFORMATNAME, new("WM_ASKCBFORMATNAME", CbDefault, "Sent to the clipboard owner by a clipboard viewer window to request the name of a CF_OWNERDISPLAY clipboard format.") },
+                { W32.WM_CLEAR, new("WM_CLEAR", CbDefault, "Clear") },
+                { W32.WM_COPY, new("WM_COPY", CbDefault, "Copy") },
+                { W32.WM_CUT, new("WM_CUT", CbDefault, "Cut") },
+                { W32.WM_PASTE, new("WM_PASTE", CbDefault, "Paste") }
             };
 
             // Init LL keyboard hook.
@@ -388,8 +359,6 @@ namespace ClipboardEx
         /// <returns></returns>
         uint CbDraw(Message m)
         {
-            uint ret;
-
             int retries = 5;
 
             while(retries > 0)
@@ -489,9 +458,9 @@ namespace ClipboardEx
             }
 
             // Pass along to the next in the chain.
-            ret = (uint)SendMessage(_nextCb, m.Msg, m.WParam, m.LParam);
+            var ret = W32.SendMessage(_nextCb, m.Msg, m.WParam, m.LParam);
 
-            return ret;
+            return (uint)ret;
         }
 
         /// <summary>
@@ -501,7 +470,7 @@ namespace ClipboardEx
         /// <returns></returns>
         uint CbChange(Message m)
         {
-            uint ret = 0;
+            var ret = 0;
 
             if (m.WParam == _nextCb)
             {
@@ -511,10 +480,10 @@ namespace ClipboardEx
             else
             {
                 // Just pass along to the next in the chain.
-                ret = (uint)SendMessage(_nextCb, m.Msg, m.WParam, m.LParam);
+                ret = W32.SendMessage(_nextCb, m.Msg, m.WParam, m.LParam);
             }
 
-            return ret;
+            return (uint)ret;
         }
 
         /// <summary>
@@ -592,13 +561,10 @@ namespace ClipboardEx
             //Tell($"FileName:{p.MainModule!.FileName} pid:{ lpdwProcessId} tid:{tid}");
 
             // This does work. Virtual keycodes from https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
-            byte vkey = 0x56; // 'v'
-            byte ctrl = 0x11;
-            int KEYEVENTF_KEYUP = 0x0002;
-            keybd_event(ctrl, 0, 0, 0);
-            keybd_event(vkey, 0, 0, 0);
-            keybd_event(ctrl, 0, KEYEVENTF_KEYUP, 0);
-            keybd_event(vkey, 0, KEYEVENTF_KEYUP, 0);
+            W32.InjectKey(W32.VK_CONTROL);
+            W32.InjectKey('v');
+            W32.InjectKey(W32.VK_CONTROL, up:true);
+            W32.InjectKey('v', up: true);
 
             // Note that this doesn't work, which makes sense.
             //SendMessage(hwnd, 0x0302, IntPtr.Zero, IntPtr.Zero); // WM_PASTE
@@ -622,7 +588,7 @@ namespace ClipboardEx
                 if (code >= 0)
                 {
                     // Update statuses.
-                    bool pressed = wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN;
+                    bool pressed = wParam == W32.WM_KEYDOWN || wParam == W32.WM_SYSKEYDOWN;
                     //bool up = wParam == WM_KEYUP || wParam == WM_SYSKEYUP;
 
                     if (key == Keys.LWin || key == Keys.RWin)

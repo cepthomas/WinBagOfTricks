@@ -5,14 +5,13 @@ using System.Text;
 using System.Threading;
 
 
-// From https://github.com/MrM40/W-WinClipboard
-// TODO could use some tidying up.
+// Clipboard for console applications. TODO delete?
+// Based on https://github.com/MrM40/W-WinClipboard
 
-#pragma warning disable SYSLIB1054, CA1401, CA2101, CS1591
 
 namespace Ephemera.Win32
 {
-    public static class Clipboard
+    public static class ConsoleClipboard
     {
         #region API
         /// <summary>
@@ -67,7 +66,6 @@ namespace Ephemera.Win32
         /// Set text in clipboard.
         /// </summary>
         /// <param name="text"></param>
-        /// <exception cref="Win32Exception"></exception>
         public static void SetText(string text)
         {
             TryOpenClipboard();
@@ -146,8 +144,6 @@ namespace Ephemera.Win32
         #endregion
 
         #region Native Methods
-
-        #region Types
         // https://learn.microsoft.com/en-us/windows/win32/dataxchg/standard-clipboard-formats
         enum ClipboardFormats : int
         {
@@ -156,7 +152,6 @@ namespace Ephemera.Win32
             CF_WAVE = 12,        // Audio data in one of the standard wave formats.
             CF_UNICODETEXT = 13, // Unicode text format. A null character signals the end of the data.
         }
-        #endregion
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]

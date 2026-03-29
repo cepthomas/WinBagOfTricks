@@ -11,7 +11,6 @@ using System.Drawing.Printing;
 using Ephemera.NBagOfTricks;
 using Ephemera.NBagOfUis;
 
-#pragma warning disable CS1591
 
 namespace ClipboardEx
 {

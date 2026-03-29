@@ -12,12 +12,11 @@ using Microsoft.WindowsAPICodePack.Taskbar;
 using Microsoft.WindowsAPICodePack.Shell;
 using Ephemera.NBagOfTricks;
 using W32 = Ephemera.Win32.Internals;
-using WM = Ephemera.Win32.WindowManagement;
 
 
 namespace JumpListEx
 {
-    /// <summary>The jumplist.</summary>
+    /// <summary>The jumplist dialog.</summary>
     public partial class JumpListEx : Form
     {
         /// <summary>The jumplist.</summary>
@@ -58,7 +57,7 @@ namespace JumpListEx
             if (TaskbarManager.IsPlatformSupported)
             {
                 var args = Environment.GetCommandLineArgs().ToList();
-                Tell($"args:{args}");
+                args.ForEach(a => Tell($"arg:{a}"));
 
                 StartPosition = FormStartPosition.Manual;
                 Location = new Point(200, 200);
@@ -93,19 +92,32 @@ namespace JumpListEx
             _jl.ClearAllUserTasks();
             _jl.KnownCategoryToDisplay = JumpListKnownCategoryType.Recent;
 
-            // Get filters.
-            var filters = _filters.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+            ///// ---> fake pinned files.
+            List<JumpListLink> pinnedItems = [];
+            DirectoryInfo diPinned = new(@"C:\Dev\Misc\WinBagOfTricks\TestFiles");
 
-            ///// Add recent files.
+            // Get the links.
+            foreach (var fs in diPinned.GetFiles())
+            {
+                JumpListLink jlink = new(fs.FullName, fs.Name);
+                pinnedItems.Add(jlink);
+            }
+
+            JumpListCustomCategory catPinned = new("Pinned");
+            catPinned.AddJumpListItems([.. pinnedItems]);
+            _jl.AddCustomCategories(catPinned);
+
+            ///// ---> recent files.
             DirectoryInfo diRecent = new(Environment.GetFolderPath(Environment.SpecialFolder.Recent));
             // Key is target, value is shortcut.
             Dictionary<FileInfo, FileInfo> finfos = [];
 
             // Get the links.
+            var filters = _filters.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
             foreach (var f in filters)
             {
                 // Get the links.
-                foreach (var fs in diRecent.GetFiles($"*.{f}.lnk").ToList())
+                foreach (var fs in diRecent.GetFiles($"*.{f}.lnk"))
                 {
                     var sl = ShellObject.FromParsingName(fs.FullName);
                     var ft = ((ShellLink)sl).TargetLocation;
@@ -123,18 +135,20 @@ namespace JumpListEx
             }
 
             JumpListCustomCategory catRecent = new("Recent");
-            catRecent.AddJumpListItems(recentItems.ToArray());
+            catRecent.AddJumpListItems([.. recentItems]);
             _jl.AddCustomCategories(catRecent);
 
-            ///// Add user tasks.
+            ///// ---> user tasks.
             var stPath = @"C:\Program Files\Sublime Text\sublime_text.exe";
             _jl.AddUserTasks(new JumpListLink(stPath, "Open ST")
             {
                 IconReference = new IconReference(stPath, 0) // 0 is default icon
             });
+
+            ///// ---> Separator.
             _jl.AddUserTasks(new JumpListSeparator());
 
-            ///// Add call to myself. Note this actually goes to MainForm.
+            ///// ---> Call to myself..
             var assy = Assembly.GetEntryAssembly();
             var loc = assy!.Location.Replace(".dll", ".exe");
             _jl.AddUserTasks(new JumpListLink(loc, "Configure")
@@ -142,8 +156,11 @@ namespace JumpListEx
                 IconReference = new IconReference(loc, 0),
                 Arguments = "config_taskbar"
             });
+
+            ///// ---> Separator.
             _jl.AddUserTasks(new JumpListSeparator());
 
+            ///// ---> End of my stuff. Followed by builtin.
             _jl.Refresh();
         }
 
@@ -153,7 +170,7 @@ namespace JumpListEx
         /// <param name="msg"></param>
         void Tell(string msg)
         {
-            string s = $"{DateTime.Now:mm\\:ss\\.fff} {msg}{Environment.NewLine}";
+            string s = $">{DateTime.Now:hh\\:mm\\:ss\\.fff} {msg}{Environment.NewLine}";
             rtbInfo.AppendText(s);
         }
     }

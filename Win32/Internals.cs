@@ -4,18 +4,29 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 
-#pragma warning disable SYSLIB1054, CA1401, CA2101, CS1591, CA1806, CA2020
-
-
 namespace Ephemera.Win32
 {
     public static class Internals
     {
         #region Definitions
+        ///// Windows messages.
+        public const int WM_KEYDOWN = 0x100;
+        //const int WM_KEYUP = 0x101;
+        public const int WM_SYSKEYDOWN = 0x104; // when the user presses the F10 key (menu bar) or holds down the ALT key and then presses another key
+        //const int WM_SYSKEYUP = 0x105; // when the user releases a key that was pressed while the ALT key was held down
+        public const int WM_DRAWCLIPBOARD = 0x0308;
+        public const int WM_CHANGECBCHAIN = 0x030D;
+        public const int WM_CLIPBOARDUPDATE = 0x031D;
+        public const int WM_DESTROYCLIPBOARD = 0x0307;
+        public const int WM_ASKCBFORMATNAME = 0x030C;
+        public const int WM_CLEAR = 0x0303;
+        public const int WM_COPY = 0x0301;
+        public const int WM_CUT = 0x0300;
+        public const int WM_PASTE = 0x0302;
         public const int WM_HOTKEY_MESSAGE_ID = 0x0312;
         public const int WM_GETTEXT = 0x000D;
 
-        // Expose some internal definitions.
+        /// Some internal definitions.
         public const int MOD_ALT = (int)KeyModifiers.MOD_ALT;
         public const int MOD_CTRL = (int)KeyModifiers.MOD_CTRL;
         public const int MOD_SHIFT = (int)KeyModifiers.MOD_SHIFT;
@@ -23,6 +34,10 @@ namespace Ephemera.Win32
         public const int HSHELL_WINDOWCREATED = (int)ShellEvents.HSHELL_WINDOWCREATED;
         public const int HSHELL_WINDOWDESTROYED = (int)ShellEvents.HSHELL_WINDOWDESTROYED;
         public const int HSHELL_WINDOWACTIVATED = (int)ShellEvents.HSHELL_WINDOWACTIVATED;
+
+        ///// Virtual keys - from https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+        // Populate as needed.
+        public const byte VK_CONTROL = 0x11;
         #endregion
 
         #region Fields
@@ -30,6 +45,41 @@ namespace Ephemera.Win32
         #endregion
 
         #region API
+        /// <summary>
+        /// Generic message sender.
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <param name="msg"></param>
+        /// <param name="wParam"></param>
+        /// <param name="lParam"></param>
+        /// <returns></returns>
+        public static int SendMessage(IntPtr handle, int msg, IntPtr wParam, IntPtr lParam)
+        {
+            return SendMessageInternal(handle, msg, wParam, lParam);
+        }
+
+        /// <summary> 
+        /// Inject a keystroke.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="up"></param>
+        public static void InjectKey(byte key, bool up = false)
+        {
+            // TODO Should use SendInput() instead.
+            // KEYEVENTF_KEYUP = 0x0002
+            keybd_event(key, 0, up ? 2 : 0, 0);
+        }
+
+        /// <summary> 
+        /// Inject a character.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="up"></param>
+        public static void InjectKey(char key, bool up = false)
+        {
+            InjectKey((byte)key, up);
+        }
+
         /// <summary>
         /// Register shell hook.
         /// </summary>
@@ -110,7 +160,7 @@ namespace Ephemera.Win32
         }
 
         /// <summary>
-        /// Streamlined version of the real function. TODO clean up all ShellExecute()
+        /// Streamlined version of the real function.
         /// </summary>
         /// <param name="verb">Standard verb</param>
         /// <param name="path">Where</param>
@@ -133,7 +183,7 @@ namespace Ephemera.Win32
         #region Native Methods
 
         #region Types
-        enum ShowCommands : int
+        public enum ShowCommands : int
         {
             SW_HIDE = 0,
             SW_SHOWNORMAL = 1,
@@ -299,6 +349,12 @@ namespace Ephemera.Win32
 
         [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
         static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, EntryPoint = "SendMessage")]
+        static extern int SendMessageInternal(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
         #endregion
 
         #endregion
