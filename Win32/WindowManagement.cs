@@ -146,7 +146,7 @@ namespace Ephemera.Win32
             //GetWindowRect(handle, out Rect rect);
 
             StringBuilder sb = new(1024);
-            var hres = GetWindowText(handle, sb, sb.Capacity);
+            _ = GetWindowText(handle, sb, sb.Capacity);
 
             WindowInfo wininfo = new();
             GetWindowInfo(handle, ref wininfo);
@@ -185,7 +185,7 @@ namespace Ephemera.Win32
         /// <returns></returns>        
         public static bool ShowWindow(IntPtr handle)
         {
-            return ShowWindow(handle, W32.ShowCommands.SW_SHOWNORMAL);
+            return ShowWindow(handle, (int)W32.ShowCommands.SW_SHOWNORMAL);
         }
 
         /// <summary>
@@ -304,7 +304,8 @@ namespace Ephemera.Win32
         [DllImport("user32.dll")]
         static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
-        [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+        [DllImport("user32.dll", SetLastError = true)]
+//        [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
         static extern bool EnumWindows(EnumWindowsCallback callback, IntPtr extraData);
         delegate bool EnumWindowsCallback(IntPtr hWnd, IntPtr lParam);
 
@@ -315,10 +316,11 @@ namespace Ephemera.Win32
         /// <param name="hwnd">handle to the window</param>
         /// <param name="lpString">StringBuilder to receive the result</param>
         /// <param name="cch">Max number of characters to copy to the buffer, including the null character. If the text exceeds this limit, it is truncated</param>
-        [DllImport("user32.dll", EntryPoint = "GetWindowTextA", CharSet = CharSet.Unicode, SetLastError = true, ExactSpelling = true)]
+//        [DllImport("user32.dll", EntryPoint = "GetWindowTextA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        [DllImport("user32.dll", EntryPoint = "GetWindowTextA", SetLastError = true, ExactSpelling = true, CharSet = CharSet.Unicode)]
         static extern int GetWindowText(IntPtr hwnd, StringBuilder lpString, int cch);
 
-        [DllImport("user32.dll", EntryPoint = "GetWindowTextLengthA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        [DllImport("user32.dll", EntryPoint = "GetWindowTextLengthA", SetLastError = true, ExactSpelling = true)]
         static extern int GetWindowTextLength(IntPtr hwnd);
         #endregion
     }

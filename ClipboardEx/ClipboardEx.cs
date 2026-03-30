@@ -123,7 +123,7 @@ namespace ClipboardEx
         [DllImport("User32.dll")]
         static extern IntPtr SetClipboardViewer(IntPtr hWndNewViewer);
 
-        [DllImport("User32.dll", CharSet = CharSet.Auto)]
+        [DllImport("User32.dll")] //, CharSet = CharSet.Auto)]
         static extern bool ChangeClipboardChain(IntPtr hWndRemove, IntPtr hWndNewNext);
 
         [DllImport("user32.dll")]
@@ -135,7 +135,8 @@ namespace ClipboardEx
         [DllImport("user32.dll")]
         static extern bool UnhookWindowsHookEx(IntPtr hInstance);
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+//        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
         static extern IntPtr GetModuleHandle(string lpModuleName);
         #endregion
 

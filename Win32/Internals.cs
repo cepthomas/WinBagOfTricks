@@ -88,7 +88,7 @@ namespace Ephemera.Win32
         public static int RegisterShellHook(IntPtr handle)
         {
             int msg = RegisterWindowMessage("SHELLHOOK"); // test for 0?
-            RegisterShellHookWindow(handle);
+            _ = RegisterShellHookWindow(handle);
             return msg;
         }
 
@@ -98,7 +98,7 @@ namespace Ephemera.Win32
         /// <param name="handle"></param>
         public static void DeregisterShellHook(IntPtr handle)
         {
-            DeregisterShellHookWindow(handle);
+            _ = DeregisterShellHookWindow(handle);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Ephemera.Win32
         public static int RegisterHotKey(IntPtr handle, int key, int mod)
         {
             int id = mod ^ key ^ (int)handle;
-            RegisterHotKey(handle, id, mod, key);
+            _ = RegisterHotKey(handle, id, mod, key);
             _hotKeyIds.Add(id);
             return id;
         }
@@ -145,7 +145,7 @@ namespace Ephemera.Win32
             }
             else
             {
-                MessageBox(IntPtr.Zero, message, caption, flags);
+                _ = MessageBox(IntPtr.Zero, message, caption, flags);
             }
 
             return true;
@@ -314,43 +314,49 @@ namespace Ephemera.Win32
         /// <summary>Performs an operation on a specified file.
         /// Args: https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ns-shellapi-shellexecuteinfoa.
         /// </summary>
-        [DllImport("shell32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+//        [DllImport("shell32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+        [DllImport("shell32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         static extern IntPtr ShellExecute(IntPtr hwnd, string lpVerb, string lpFile, string lpParameters, string lpDirectory, int nShow);
 
         /// <summary>Overload of above for nullable args.</summary>
-        [DllImport("shell32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+//        [DllImport("shell32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+        [DllImport("shell32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         static extern IntPtr ShellExecute(IntPtr hwnd, string lpVerb, string lpFile, IntPtr lpParameters, IntPtr lpDirectory, int nShow);
 
         /// <summary>Finer control version of above.</summary>
-        [DllImport("shell32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+//        [DllImport("shell32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+        [DllImport("shell32.dll", SetLastError = true)]
         static extern bool ShellExecuteEx(ref ShellExecuteInfo lpExecInfo);
         #endregion
 
         #region user32.dll
         /// <summary>Rudimentary UI notification for use in a console application.</summary>
-        [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+//        [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         static extern int MessageBox(IntPtr hWnd, string msg, string caption, uint type);
 
         [DllImport("user32.dll")]
         static extern bool SetProcessDPIAware();
 
-        [DllImport("user32.dll", EntryPoint = "RegisterWindowMessageA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        [DllImport("user32.dll", EntryPoint = "RegisterWindowMessageA", SetLastError = true, ExactSpelling = true, CharSet = CharSet.Unicode)]
+       // [DllImport("user32.dll", EntryPoint = "RegisterWindowMessageA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
         static extern int RegisterWindowMessage(string lpString);
 
-        [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+   //     [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        [DllImport("user32.dll", SetLastError = true, ExactSpelling = true)]
         static extern int RegisterShellHookWindow(IntPtr hWnd);
 
-        [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        [DllImport("user32.dll", SetLastError = true, ExactSpelling = true)]
         static extern int DeregisterShellHookWindow(IntPtr hWnd);
 
         // Keyboard hooks.
-        [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        [DllImport("user32.dll", SetLastError = true, ExactSpelling = true)]
         static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
 
-        [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
+        [DllImport("user32.dll", SetLastError = true, ExactSpelling = true)]
         static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, EntryPoint = "SendMessage")]
+        [DllImport("user32.dll", EntryPoint = "SendMessage")]
         static extern int SendMessageInternal(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32.dll")]
