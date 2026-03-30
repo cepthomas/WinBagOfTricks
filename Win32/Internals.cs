@@ -11,9 +11,9 @@ namespace Ephemera.Win32
         #region Definitions
         ///// Windows messages.
         public const int WM_KEYDOWN = 0x100;
-        //const int WM_KEYUP = 0x101;
+        public const int WM_KEYUP = 0x101;
         public const int WM_SYSKEYDOWN = 0x104; // when the user presses the F10 key (menu bar) or holds down the ALT key and then presses another key
-        //const int WM_SYSKEYUP = 0x105; // when the user releases a key that was pressed while the ALT key was held down
+        public const int WM_SYSKEYUP = 0x105; // when the user releases a key that was pressed while the ALT key was held down
         public const int WM_DRAWCLIPBOARD = 0x0308;
         public const int WM_CHANGECBCHAIN = 0x030D;
         public const int WM_CLIPBOARDUPDATE = 0x031D;
@@ -26,18 +26,93 @@ namespace Ephemera.Win32
         public const int WM_HOTKEY_MESSAGE_ID = 0x0312;
         public const int WM_GETTEXT = 0x000D;
 
-        /// Some internal definitions.
-        public const int MOD_ALT = (int)KeyModifiers.MOD_ALT;
-        public const int MOD_CTRL = (int)KeyModifiers.MOD_CTRL;
-        public const int MOD_SHIFT = (int)KeyModifiers.MOD_SHIFT;
-        public const int MOD_WIN = (int)KeyModifiers.MOD_WIN;
-        public const int HSHELL_WINDOWCREATED = (int)ShellEvents.HSHELL_WINDOWCREATED;
-        public const int HSHELL_WINDOWDESTROYED = (int)ShellEvents.HSHELL_WINDOWDESTROYED;
-        public const int HSHELL_WINDOWACTIVATED = (int)ShellEvents.HSHELL_WINDOWACTIVATED;
+        ///// Show Commands
+        public const int SW_HIDE = 0;
+        public const int SW_SHOWNORMAL = 1;
+        public const int SW_NORMAL = SW_SHOWNORMAL;
+        public const int SW_SHOWMINIMIZED = 2;
+        public const int SW_SHOWMAXIMIZED = 3;
+        public const int SW_MAXIMIZE = SW_SHOWMAXIMIZED;
+        public const int SW_SHOWNOACTIVATE = 4;
+        public const int SW_SHOW = 5;
+        public const int SW_MINIMIZE = 6;
+        public const int SW_SHOWMINNOACTIVE = 7;
+        public const int SW_SHOWNA = 8;
+        public const int SW_RESTORE = 9;
+        public const int SW_SHOWDEFAULT = 10;
+        public const int SW_FORCEMINIMIZE = 11;
+        public const int SW_MAX = SW_FORCEMINIMIZE;
+
+        ///// Message Box Flags
+        public const uint MB_OK = 0x00000000;
+        public const uint MB_OKCANCEL = 0x00000001;
+        public const uint MB_ABORTRETRYIGNORE = 0x00000002;
+        public const uint MB_YESNOCANCEL = 0x00000003;
+        public const uint MB_YESNO = 0x00000004;
+        public const uint MB_RETRYCANCEL = 0x00000005;
+        public const uint MB_CANCELTRYCONTINUE = 0x00000006;
+        public const uint MB_ICONHAND = 0x00000010;
+        public const uint MB_ICONQUESTION = 0x00000020;
+        public const uint MB_ICONEXCLAMATION = 0x00000030;
+        public const uint MB_ICONASTERISK = 0x00000040;
+        public const uint MB_USERICON = 0x00000080;
+        public const uint MB_ICONWARNING = MB_ICONEXCLAMATION;
+        public const uint MB_ICONERROR = MB_ICONHAND;
+        public const uint MB_ICONINFORMATION = MB_ICONASTERISK;
+        public const uint MB_ICONSTOP = MB_ICONHAND;
 
         ///// Virtual keys - from https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
         // Populate as needed.
         public const byte VK_CONTROL = 0x11;
+
+        ///// Key Modifiers
+        public const int MOD_ALT = 0x0001;
+        public const int MOD_CTRL = 0x0002;
+        public const int MOD_SHIFT = 0x0004;
+        public const int MOD_WIN = 0x0008;
+
+        ///// Shell Events
+        public const int HSHELL_WINDOWCREATED = 1;
+        public const int HSHELL_WINDOWDESTROYED = 2;
+        public const int HSHELL_ACTIVATESHELLWINDOW = 3; // not used
+        public const int HSHELL_WINDOWACTIVATED = 4;
+        public const int HSHELL_GETMINRECT = 5;
+        public const int HSHELL_REDRAW = 6;
+        public const int HSHELL_TASKMAN = 7;
+        public const int HSHELL_LANGUAGE = 8;
+        public const int HSHELL_ACCESSIBILITYSTATE = 11;
+        public const int HSHELL_APPCOMMAND = 12;
+
+        ///// Shell Execute Mask Flags
+        public const uint SEE_MASK_DEFAULT = 0x00000000;
+        public const uint SEE_MASK_CLASSNAME = 0x00000001;
+        public const uint SEE_MASK_CLASSKEY = 0x00000003;
+        public const uint SEE_MASK_IDLIST = 0x00000004;
+        public const uint SEE_MASK_INVOKEIDLIST = 0x0000000c;   // Note SEE_MASK_INVOKEIDLIST(0xC) implies SEE_MASK_IDLIST(0x04)
+        public const uint SEE_MASK_HOTKEY = 0x00000020;
+        public const uint SEE_MASK_NOCLOSEPROCESS = 0x00000040;
+        public const uint SEE_MASK_CONNECTNETDRV = 0x00000080;
+        public const uint SEE_MASK_NOASYNC = 0x00000100;
+        public const uint SEE_MASK_FLAG_DDEWAIT = SEE_MASK_NOASYNC;
+        public const uint SEE_MASK_DOENVSUBST = 0x00000200;
+        public const uint SEE_MASK_FLAG_NO_UI = 0x00000400;
+        public const uint SEE_MASK_UNICODE = 0x00004000;
+        public const uint SEE_MASK_NO_CONSOLE = 0x00008000;
+        public const uint SEE_MASK_ASYNCOK = 0x00100000;
+        public const uint SEE_MASK_HMONITOR = 0x00200000;
+        public const uint SEE_MASK_NOZONECHECKS = 0x00800000;
+        public const uint SEE_MASK_NOQUERYCLASSSTORE = 0x01000000;
+        public const uint SEE_MASK_WAITFORINPUTIDLE = 0x02000000;
+        public const uint SEE_MASK_FLAG_LOG_USAGE = 0x04000000;
+
+        ///// Some internal definitions.
+        // public const int MOD_ALT = (int)KeyModifiers.MOD_ALT;
+        // public const int MOD_CTRL = (int)KeyModifiers.MOD_CTRL;
+        // public const int MOD_SHIFT = (int)KeyModifiers.MOD_SHIFT;
+        // public const int MOD_WIN = (int)KeyModifiers.MOD_WIN;
+        // public const int HSHELL_WINDOWCREATED = (int)ShellEvents.HSHELL_WINDOWCREATED;
+        // public const int HSHELL_WINDOWDESTROYED = (int)ShellEvents.HSHELL_WINDOWDESTROYED;
+        // public const int HSHELL_WINDOWACTIVATED = (int)ShellEvents.HSHELL_WINDOWACTIVATED;
         #endregion
 
         #region Fields
@@ -66,8 +141,7 @@ namespace Ephemera.Win32
         public static void InjectKey(byte key, bool up = false)
         {
             // TODO Should use SendInput() instead.
-            // KEYEVENTF_KEYUP = 0x0002
-            keybd_event(key, 0, up ? 2 : 0, 0);
+            keybd_event(key, 0, up ? 2 : 0, 0); // KEYEVENTF_KEYUP = 0x0002
         }
 
         /// <summary> 
@@ -135,11 +209,11 @@ namespace Ephemera.Win32
         /// <returns>True if OK </returns>
         public static bool MessageBox(string message, string caption, bool error = false, bool ask = false)
         {
-            uint flags = error ? (uint)MessageBoxFlags.MB_ICONERROR : (uint)MessageBoxFlags.MB_ICONINFORMATION;
+            uint flags = error ? MB_ICONERROR : MB_ICONINFORMATION;
 
             if (ask)
             {
-                flags |= (uint)MessageBoxFlags.MB_OKCANCEL;
+                flags |= MB_OKCANCEL;
                 int res = MessageBox(IntPtr.Zero, message, caption, flags);
                 return res == 1; //IDOK
             }
@@ -174,7 +248,7 @@ namespace Ephemera.Win32
             // If ShellExecute() succeeds, it returns a value greater than 32,
             //   else it returns an error value that indicates the cause of the failure.
             int res = (int)ShellExecute(IntPtr.Zero, verb, path, IntPtr.Zero, IntPtr.Zero,
-                hide ? (int)ShowCommands.SW_HIDE : (int)ShowCommands.SW_NORMAL);
+                hide ? SW_HIDE : SW_NORMAL);
 
             return res > 32 ? 0 : res;
         }
@@ -183,94 +257,6 @@ namespace Ephemera.Win32
         #region Native Methods
 
         #region Types
-        public enum ShowCommands : int
-        {
-            SW_HIDE = 0,
-            SW_SHOWNORMAL = 1,
-            SW_NORMAL = SW_SHOWNORMAL,
-            SW_SHOWMINIMIZED = 2,
-            SW_SHOWMAXIMIZED = 3,
-            SW_MAXIMIZE = SW_SHOWMAXIMIZED,
-            SW_SHOWNOACTIVATE = 4,
-            SW_SHOW = 5,
-            SW_MINIMIZE = 6,
-            SW_SHOWMINNOACTIVE = 7,
-            SW_SHOWNA = 8,
-            SW_RESTORE = 9,
-            SW_SHOWDEFAULT = 10,
-            SW_FORCEMINIMIZE = 11,
-            SW_MAX = SW_FORCEMINIMIZE
-        }
-
-        [Flags]
-        enum MessageBoxFlags : uint
-        {
-            MB_OK = 0x00000000,
-            MB_OKCANCEL = 0x00000001,
-            MB_ABORTRETRYIGNORE = 0x00000002,
-            MB_YESNOCANCEL = 0x00000003,
-            MB_YESNO = 0x00000004,
-            MB_RETRYCANCEL = 0x00000005,
-            MB_CANCELTRYCONTINUE = 0x00000006,
-            MB_ICONHAND = 0x00000010,
-            MB_ICONQUESTION = 0x00000020,
-            MB_ICONEXCLAMATION = 0x00000030,
-            MB_ICONASTERISK = 0x00000040,
-            MB_USERICON = 0x00000080,
-            MB_ICONWARNING = MB_ICONEXCLAMATION,
-            MB_ICONERROR = MB_ICONHAND,
-            MB_ICONINFORMATION = MB_ICONASTERISK,
-            MB_ICONSTOP = MB_ICONHAND,
-        }
-
-        [Flags]
-        enum KeyModifiers : int
-        {
-            MOD_ALT = 0x0001,
-            MOD_CTRL = 0x0002,
-            MOD_SHIFT = 0x0004,
-            MOD_WIN = 0x0008
-        }
-
-        enum ShellEvents : int
-        {
-            HSHELL_WINDOWCREATED = 1,
-            HSHELL_WINDOWDESTROYED = 2,
-            HSHELL_ACTIVATESHELLWINDOW = 3, // not used
-            HSHELL_WINDOWACTIVATED = 4,
-            HSHELL_GETMINRECT = 5,
-            HSHELL_REDRAW = 6,
-            HSHELL_TASKMAN = 7,
-            HSHELL_LANGUAGE = 8,
-            HSHELL_ACCESSIBILITYSTATE = 11,
-            HSHELL_APPCOMMAND = 12
-        }
-
-        [Flags]
-        public enum ShellExecuteMaskFlags : uint
-        {
-            SEE_MASK_DEFAULT = 0x00000000,
-            SEE_MASK_CLASSNAME = 0x00000001,
-            SEE_MASK_CLASSKEY = 0x00000003,
-            SEE_MASK_IDLIST = 0x00000004,
-            SEE_MASK_INVOKEIDLIST = 0x0000000c,   // Note SEE_MASK_INVOKEIDLIST(0xC) implies SEE_MASK_IDLIST(0x04)
-            SEE_MASK_HOTKEY = 0x00000020,
-            SEE_MASK_NOCLOSEPROCESS = 0x00000040,
-            SEE_MASK_CONNECTNETDRV = 0x00000080,
-            SEE_MASK_NOASYNC = 0x00000100,
-            SEE_MASK_FLAG_DDEWAIT = SEE_MASK_NOASYNC,
-            SEE_MASK_DOENVSUBST = 0x00000200,
-            SEE_MASK_FLAG_NO_UI = 0x00000400,
-            SEE_MASK_UNICODE = 0x00004000,
-            SEE_MASK_NO_CONSOLE = 0x00008000,
-            SEE_MASK_ASYNCOK = 0x00100000,
-            SEE_MASK_HMONITOR = 0x00200000,
-            SEE_MASK_NOZONECHECKS = 0x00800000,
-            SEE_MASK_NOQUERYCLASSSTORE = 0x01000000,
-            SEE_MASK_WAITFORINPUTIDLE = 0x02000000,
-            SEE_MASK_FLAG_LOG_USAGE = 0x04000000,
-        }
-
         /// <summary>For ShellExecuteEx().</summary>
         /// https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ns-shellapi-shellexecuteinfoa
         /// ? Be careful with the string structure fields: UnmanagedType.LPTStr will be marshalled as unicode string so only
@@ -314,24 +300,20 @@ namespace Ephemera.Win32
         /// <summary>Performs an operation on a specified file.
         /// Args: https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ns-shellapi-shellexecuteinfoa.
         /// </summary>
-//        [DllImport("shell32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
         [DllImport("shell32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         static extern IntPtr ShellExecute(IntPtr hwnd, string lpVerb, string lpFile, string lpParameters, string lpDirectory, int nShow);
 
         /// <summary>Overload of above for nullable args.</summary>
-//        [DllImport("shell32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
         [DllImport("shell32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         static extern IntPtr ShellExecute(IntPtr hwnd, string lpVerb, string lpFile, IntPtr lpParameters, IntPtr lpDirectory, int nShow);
 
         /// <summary>Finer control version of above.</summary>
-//        [DllImport("shell32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
         [DllImport("shell32.dll", SetLastError = true)]
         static extern bool ShellExecuteEx(ref ShellExecuteInfo lpExecInfo);
         #endregion
 
         #region user32.dll
         /// <summary>Rudimentary UI notification for use in a console application.</summary>
-//        [DllImport("user32.dll", CharSet = CharSet.Ansi)]
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         static extern int MessageBox(IntPtr hWnd, string msg, string caption, uint type);
 
@@ -339,10 +321,8 @@ namespace Ephemera.Win32
         static extern bool SetProcessDPIAware();
 
         [DllImport("user32.dll", EntryPoint = "RegisterWindowMessageA", SetLastError = true, ExactSpelling = true, CharSet = CharSet.Unicode)]
-       // [DllImport("user32.dll", EntryPoint = "RegisterWindowMessageA", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
         static extern int RegisterWindowMessage(string lpString);
 
-   //     [DllImport("user32.dll", CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
         [DllImport("user32.dll", SetLastError = true, ExactSpelling = true)]
         static extern int RegisterShellHookWindow(IntPtr hWnd);
 
