@@ -15,9 +15,9 @@
         <Company>Ephemera Inc</Company>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <Copyright>MIT License</Copyright>
-        <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+        <!-- <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
         <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
-        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute> -->
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

@@ -1,5 +1,8 @@
 # WinBagOfTricks
 
+====================== Going to sleep ======================
+=========== Parts have migrated to other projects ==========
+
 A place to play with some Windows stuff. Requires VS2022 and .NET8.
 
 
